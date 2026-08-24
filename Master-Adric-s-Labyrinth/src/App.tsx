@@ -1,16 +1,29 @@
+import { useCallback, useState } from 'react';
 import { buildWorkflow } from './game/buildWorkflow';
-import { documentMedByHx } from './game/data';
+import { workflows as workflowDefs } from './game/data';
+import type { BuiltWorkflow, WorkflowId } from './game/types';
 import { ThemeProvider, useTheme } from './state/ThemeContext';
+import { getCompleted } from './state/storage';
 import { useRun } from './state/useRun';
 import { PatienceMeter } from './ui/components/PatienceMeter';
 import { DeadEnd } from './ui/scenes/DeadEnd';
 import { Junction } from './ui/scenes/Junction';
+import { Overworld } from './ui/scenes/Overworld';
 import './ui/styles/game.css';
 
-// Hardcoded for Stage 2 — the Overworld will pick the workflow later.
-const workflow = buildWorkflow(documentMedByHx);
+const builtWorkflows: BuiltWorkflow[] = workflowDefs.map(buildWorkflow);
+const workflowsById: Record<WorkflowId, BuiltWorkflow> = Object.fromEntries(
+  builtWorkflows.map((w) => [w.id, w]),
+);
 
-function Game() {
+type Scene = { name: 'overworld' } | { name: 'workflow'; id: WorkflowId };
+
+interface WorkflowScreenProps {
+  workflow: BuiltWorkflow;
+  onReturnToOverworld: () => void;
+}
+
+function WorkflowScreen({ workflow, onReturnToOverworld }: WorkflowScreenProps) {
   const theme = useTheme();
   const { run, choose, backtrack, useHint, restart } = useRun(workflow);
 
@@ -41,6 +54,9 @@ function Game() {
           <button type="button" onClick={restart}>
             Begin again
           </button>
+          <button type="button" onClick={onReturnToOverworld}>
+            Return to {theme.labels.overworld}
+          </button>
         </div>
       )}
 
@@ -48,12 +64,39 @@ function Game() {
         <div className="fallback-scene">
           <h1>{workflow.title} — complete</h1>
           <p>{run.taken.map((t) => t.label).join(' → ')}</p>
-          <button type="button" onClick={restart}>
-            Play again
+          <button type="button" onClick={onReturnToOverworld}>
+            Return to {theme.labels.overworld}
           </button>
         </div>
       )}
     </>
+  );
+}
+
+function Game() {
+  const [scene, setScene] = useState<Scene>({ name: 'overworld' });
+  const [completed, setCompleted] = useState<WorkflowId[]>(() => getCompleted());
+
+  const returnToOverworld = useCallback(() => {
+    setCompleted(getCompleted());
+    setScene({ name: 'overworld' });
+  }, []);
+
+  if (scene.name === 'overworld') {
+    return (
+      <Overworld
+        workflows={builtWorkflows}
+        completed={completed}
+        onSelect={(id) => setScene({ name: 'workflow', id })}
+      />
+    );
+  }
+
+  return (
+    <WorkflowScreen
+      workflow={workflowsById[scene.id]}
+      onReturnToOverworld={returnToOverworld}
+    />
   );
 }
 
