@@ -47,11 +47,23 @@ export type RuleSource = 'job-aid' | 'authored-needs-review';
 export interface WrongChoice {
   /** Button label, exactly as it appears in PowerChart. */
   label: string;
-  /** The rule Aldric delivers at the dead end. One or two sentences. */
-  rule: string;
-  source: RuleSource;
+  /**
+   * Optional per-door rule, used ONLY where the job aid speaks to this
+   * specific option (e.g. the "No Known Home Medications" note). Omit it and
+   * the dead end falls back to the step's positive rule — which is the
+   * default, because a rule about the correct step is always grounded, while
+   * a claim about what a wrong button does usually is not.
+   */
+  rule?: string;
+  /** Required whenever `rule` is set. */
+  source?: RuleSource;
   /** Provenance for review, e.g. "p.1 step 3 note". */
   aidRef?: string;
+  /**
+   * Set when the LABEL itself needs checking against a screenshot — i.e. we
+   * are not certain this button exists on this screen with this wording.
+   */
+  needsReview?: boolean;
 }
 
 export interface CorrectChoice {
@@ -84,6 +96,16 @@ export interface StepDef {
   /** What they are trying to do at this junction. */
   prompt: string;
   correct: Correct;
+  /**
+   * The junction's rule, stated positively — what the job aid says the
+   * correct action is. Shown at the dead end behind ANY wrong door here
+   * unless that door carries its own `rule`.
+   *
+   * Positive phrasing is deliberate: it is transcription rather than
+   * invention, so it needs no SME sign-off, and for a post-training audience
+   * it prompts recall instead of explaining a button they did not pick.
+   */
+  rule: string;
   wrong: WrongChoice[];
   /** Job-aid Note/Tip that Aldric surfaces after a correct pick. */
   note?: string;
@@ -101,6 +123,8 @@ export interface WorkflowDef {
   source: string;
   /** Hints granted for this workflow. */
   hints: number;
+  /** Master Aldric's patience for this workflow. A wrong pick costs one; zero fails the run. */
+  patience: number;
   /** Doors shown at every junction. Defaults to 3. */
   doorsPerJunction?: number;
   /** Aldric's briefing lines — one per dialogue-box advance. */
@@ -157,6 +181,7 @@ export interface BuiltWorkflow {
   sector: SectorId;
   source: string;
   hints: number;
+  patience: number;
   doorsPerJunction: number;
   briefing: string[];
   outro: string[];
@@ -172,7 +197,7 @@ export interface BuiltWorkflow {
 /* Run state                                                           */
 /* ------------------------------------------------------------------ */
 
-export type RunStatus = 'briefing' | 'junction' | 'deadEnd' | 'complete';
+export type RunStatus = 'briefing' | 'junction' | 'deadEnd' | 'complete' | 'failed';
 
 export interface DeadEnd {
   stepId: StepId;
@@ -180,6 +205,8 @@ export interface DeadEnd {
   label: string;
   rule: string;
   source: RuleSource;
+  /** Provenance for the citation line, e.g. "p.1 step 3 note". Carried over from the door. */
+  aidRef?: string;
   /** Which Aldric dead-end scene to show. The theme supplies the content. */
   sceneIndex: number;
 }
@@ -209,10 +236,12 @@ export interface RunState {
   hintedSteps: StepId[];
   wrongCount: number;
   wrongByStep: Record<StepId, number>;
-  /** Present iff status === 'deadEnd'. */
+  /** Present iff status === 'deadEnd' or 'failed' — the rule that ended the run is shown either way. */
   deadEnd?: DeadEnd;
   /** Rotates dead-end scenes so the same one never fires twice in a row. */
   sceneCursor: number;
+  /** Master Aldric's patience left this run. A wrong pick decrements it; zero sets status: 'failed'. */
+  patienceRemaining: number;
 }
 
 /** Shape written to localStorage by the state layer. The engine never sees it. */
@@ -272,6 +301,9 @@ export interface ThemeTokens {
     dosePlural: string;
     hint: string;
     hintPlural: string;
+    /** Uncountable in normal usage — "3 patience remaining", not "3 patiences". */
+    patience: string;
+    patiencePlural: string;
     mentor: string;
     overworld: string;
     junction: string;
@@ -288,6 +320,9 @@ export interface ThemeTokens {
 
   /** The 5–6 randomized Aldric reactions for dead ends. */
   deadEndScenes: DeadEndScene[];
+
+  /** Aldric's line on the Failed scene, when patience hits zero. */
+  outOfPatienceLine: string;
 
   /** Typewriter reveal speed, ms per character. */
   typewriterMs: number;
