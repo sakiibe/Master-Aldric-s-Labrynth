@@ -205,6 +205,8 @@ export interface DeadEnd {
   label: string;
   rule: string;
   source: RuleSource;
+  /** Provenance for the citation line, e.g. "p.1 step 3 note". Carried over from the door. */
+  aidRef?: string;
   /** Which Aldric dead-end scene to show. The theme supplies the content. */
   sceneIndex: number;
 }

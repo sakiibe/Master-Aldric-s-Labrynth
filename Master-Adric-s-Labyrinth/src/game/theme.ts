@@ -54,22 +54,22 @@ export const theme: ThemeTokens = {
     {
       id: 'bath',
       art: 'aldric-bath',
-      line: "Must you fail RIGHT as I've— very well. Let me towel off and explain your error.",
+      line: 'Do you MIND? I was three breaths from enlightenment and a very good soak.',
     },
     {
       id: 'makeup',
       art: 'aldric-makeup',
-      line: 'One moment — the kohl does not apply itself. Now. About that wrong door.',
+      line: 'One moment. You have chosen poorly, and I intend to look magnificent saying so.',
+    },
+    {
+      id: 'figurines',
+      art: 'aldric-figurines',
+      line: 'These are ANATOMICAL MODELS. For study. I was studying. Loudly.',
     },
     {
       id: 'cauldron',
       art: 'aldric-cauldron',
-      line: "The cauldron! It's— it's fine, it's FINE. Now, apprentice, about your choice—",
-    },
-    {
-      id: 'raven',
-      art: 'aldric-raven',
-      line: 'Corvus, I am WORKING — apologies. Your click was, regrettably, incorrect.',
+      line: 'That door was wrong, and now so is my reduction. Nine hours. NINE.',
     },
     {
       id: 'robe',

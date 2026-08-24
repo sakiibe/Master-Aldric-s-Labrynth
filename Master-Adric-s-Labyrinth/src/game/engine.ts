@@ -78,6 +78,7 @@ export function choose(
     label: door.label,
     rule: door.rule!,
     source: door.source!,
+    aidRef: door.aidRef,
     sceneIndex: run.sceneCursor,
   };
   return {

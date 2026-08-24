@@ -1,122 +1,68 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { buildWorkflow } from './game/buildWorkflow';
+import { documentMedByHx } from './game/data';
+import { ThemeProvider, useTheme } from './state/ThemeContext';
+import { useRun } from './state/useRun';
+import { PatienceMeter } from './ui/components/PatienceMeter';
+import { DeadEnd } from './ui/scenes/DeadEnd';
+import { Junction } from './ui/scenes/Junction';
+import './ui/styles/game.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Hardcoded for Stage 2 — the Overworld will pick the workflow later.
+const workflow = buildWorkflow(documentMedByHx);
+
+function Game() {
+  const theme = useTheme();
+  const { run, choose, backtrack, useHint, restart } = useRun(workflow);
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      <PatienceMeter remaining={run.patienceRemaining} total={workflow.patience} />
 
-      <div className="ticks"></div>
+      {run.status === 'junction' && (
+        <Junction
+          step={workflow.byId[run.stepId]}
+          hintedSteps={run.hintedSteps}
+          hintsRemaining={run.hintsRemaining}
+          taken={run.taken}
+          onChoose={choose}
+          onHint={useHint}
+        />
+      )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      {run.status === 'deadEnd' && run.deadEnd && (
+        <DeadEnd workflow={workflow} deadEnd={run.deadEnd} onBacktrack={backtrack} />
+      )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      {run.status === 'failed' && run.deadEnd && (
+        <div className="fallback-scene">
+          <h1>{theme.labels.mentor}'s {theme.labels.patience} is spent</h1>
+          <p className="dialogue-rule">{run.deadEnd.rule}</p>
+          <p>{theme.outOfPatienceLine}</p>
+          <button type="button" onClick={restart}>
+            Begin again
+          </button>
+        </div>
+      )}
+
+      {run.status === 'complete' && (
+        <div className="fallback-scene">
+          <h1>{workflow.title} — complete</h1>
+          <p>{run.taken.map((t) => t.label).join(' → ')}</p>
+          <button type="button" onClick={restart}>
+            Play again
+          </button>
+        </div>
+      )}
     </>
-  )
+  );
 }
 
-export default App
+function App() {
+  return (
+    <ThemeProvider>
+      <Game />
+    </ThemeProvider>
+  );
+}
+
+export default App;
