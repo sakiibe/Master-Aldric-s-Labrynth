@@ -17,6 +17,7 @@ export const documentMedByHx: WorkflowDef = {
   id: 'bpmh-document-med-hx',
   title: 'Document Medication by Hx',
   sector: 'bpmh',
+  jobAid: 'bpmh',
   source: 'BPMH & Admission Med Rec (pp. 1–2)',
   hints: 3,
   patience: 5,
