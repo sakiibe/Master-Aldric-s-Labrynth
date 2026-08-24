@@ -47,12 +47,13 @@ export function Junction({
       </div>
 
       <div className="doors">
-        {step.doors.map((door) => (
+        {step.doors.map((door, i) => (
           <Door
             key={door.id}
             door={door}
             glowing={hinted && door.kind === 'correct'}
             onSelect={onChoose}
+            sigil={(i % 3) as 0 | 1 | 2}
           />
         ))}
       </div>
