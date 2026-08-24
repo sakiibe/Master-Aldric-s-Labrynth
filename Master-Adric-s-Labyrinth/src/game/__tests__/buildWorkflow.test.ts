@@ -8,6 +8,7 @@ function def(overrides: Partial<WorkflowDef> = {}): WorkflowDef {
     id: 'test-wf',
     title: 'Test',
     sector: 'bpmh',
+    jobAid: 'bpmh',
     source: 'test',
     hints: 2,
     patience: 3,

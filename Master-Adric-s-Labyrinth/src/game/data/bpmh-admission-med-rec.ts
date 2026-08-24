@@ -11,6 +11,7 @@ export const admissionMedRec: WorkflowDef = {
   id: 'bpmh-admission-med-rec',
   title: 'Admission Medication Reconciliation',
   sector: 'bpmh',
+  jobAid: 'bpmh',
   source: 'BPMH & Admission Med Rec (pp. 5–6)',
   hints: 2,
   patience: 3,

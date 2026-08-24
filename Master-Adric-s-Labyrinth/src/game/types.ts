@@ -29,6 +29,19 @@ export type SectorId =
   | 'bpmh'
   | 'infusions';
 
+/** An Overworld district — one per job aid. Drives grouping, not gating. */
+export type JobAidId = 'bpmh' | 'verification' | 'cpoe' | 'oncology';
+
+export interface JobAid {
+  id: JobAidId;
+  /** Full aid title, shown on the district signpost. */
+  name: string;
+  /** District ground-glow / signpost tint. */
+  color: string;
+  /** Key into the SVG sigil registry. */
+  sigil: string;
+}
+
 /* ------------------------------------------------------------------ */
 /* Authoring                                                           */
 /* ------------------------------------------------------------------ */
@@ -119,6 +132,11 @@ export interface WorkflowDef {
   id: WorkflowId;
   title: string;
   sector: SectorId;
+  /**
+   * Which Overworld district this belongs to. Required so the compiler
+   * catches an unassigned workflow as the remaining job aids are transcribed.
+   */
+  jobAid: JobAidId;
   /** Job aid this was transcribed from, with page range. */
   source: string;
   /** Hints granted for this workflow. */
@@ -179,6 +197,7 @@ export interface BuiltWorkflow {
   id: WorkflowId;
   title: string;
   sector: SectorId;
+  jobAid: JobAidId;
   source: string;
   hints: number;
   patience: number;
@@ -320,6 +339,9 @@ export interface ThemeTokens {
 
   /** The 5–6 randomized Aldric reactions for dead ends. */
   deadEndScenes: DeadEndScene[];
+
+  /** Every Overworld district, keyed by job aid. */
+  jobAids: Record<JobAidId, JobAid>;
 
   /** Aldric's line on the Failed scene, when patience hits zero. */
   outOfPatienceLine: string;

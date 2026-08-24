@@ -176,6 +176,7 @@ export function buildWorkflow(def: WorkflowDef): BuiltWorkflow {
     id: def.id,
     title: def.title,
     sector: def.sector,
+    jobAid: def.jobAid,
     source: def.source,
     hints: def.hints,
     patience: def.patience,

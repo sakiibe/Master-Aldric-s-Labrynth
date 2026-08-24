@@ -47,6 +47,11 @@ export function saveProgress(progress: PersistedProgress): void {
   }
 }
 
+/** The completed-workflow list, for gating the Overworld with `isUnlocked()`. */
+export function getCompleted(): WorkflowId[] {
+  return loadProgress().completed;
+}
+
 /** Persists a single workflow's run, keeping the rest of `progress` intact. */
 export function saveRun(
   workflowId: WorkflowId,
