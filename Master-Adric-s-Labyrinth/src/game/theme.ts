@@ -82,4 +82,31 @@ export const theme: ThemeTokens = {
     'My patience, apprentice, is not so easily replenished as your resolve. We begin again.',
 
   typewriterMs: 30,
+
+  jobAids: {
+    bpmh: {
+      id: 'bpmh',
+      name: 'BPMH & Med Rec',
+      color: '#3c6f8f',
+      sigil: 'sigil-bpmh',
+    },
+    verification: {
+      id: 'verification',
+      name: 'Pharmacist Verification',
+      color: '#7a5aa8',
+      sigil: 'sigil-verification',
+    },
+    cpoe: {
+      id: 'cpoe',
+      name: 'CPOE',
+      color: '#3f8f80',
+      sigil: 'sigil-cpoe',
+    },
+    oncology: {
+      id: 'oncology',
+      name: 'Oncology Orders',
+      color: '#a8804a',
+      sigil: 'sigil-oncology',
+    },
+  },
 };
