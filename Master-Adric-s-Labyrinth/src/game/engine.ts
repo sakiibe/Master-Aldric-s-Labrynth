@@ -4,7 +4,18 @@
  * Every transition returns a new `RunState`; nothing here mutates its input.
  */
 
-import type { BuiltWorkflow, DeadEnd, DoorId, RunState } from './types';
+import type { BuiltWorkflow, DeadEnd, DoorId, RunState, WorkflowId } from './types';
+
+/**
+ * Whether a workflow's prerequisites are satisfied. Drives Overworld lock
+ * state — a workflow with no `requires` is always unlocked.
+ */
+export function isUnlocked(
+  requires: WorkflowId[],
+  completed: WorkflowId[],
+): boolean {
+  return requires.every((id) => completed.includes(id));
+}
 
 /**
  * A fresh run of `workflow`, full patience and hints. Used both to start a
