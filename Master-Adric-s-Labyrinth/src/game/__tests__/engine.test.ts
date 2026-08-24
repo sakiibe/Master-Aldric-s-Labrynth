@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { backtrack, choose, progress, restart, useHint } from '../engine';
+import { backtrack, choose, isUnlocked, progress, restart, useHint } from '../engine';
 import { buildWorkflow } from '../buildWorkflow';
 import type { WorkflowDef } from '../types';
 
@@ -8,6 +8,7 @@ function def(overrides: Partial<WorkflowDef> = {}): WorkflowDef {
     id: 'test-wf',
     title: 'Test',
     sector: 'bpmh',
+    jobAid: 'bpmh',
     source: 'test',
     hints: 1,
     patience: 2,
@@ -199,6 +200,26 @@ describe('backtrack', () => {
     const before = run;
     run = backtrack(run);
     expect(run).toEqual(before);
+  });
+});
+
+describe('isUnlocked', () => {
+  it('is always true with no prerequisites', () => {
+    expect(isUnlocked([], [])).toBe(true);
+  });
+
+  it('is false when a prerequisite is not yet completed', () => {
+    expect(isUnlocked(['bpmh-document-med-hx'], [])).toBe(false);
+  });
+
+  it('is true once every prerequisite is completed', () => {
+    expect(
+      isUnlocked(['bpmh-document-med-hx'], ['bpmh-document-med-hx']),
+    ).toBe(true);
+  });
+
+  it('is false when only some prerequisites are completed', () => {
+    expect(isUnlocked(['a', 'b'], ['a'])).toBe(false);
   });
 });
 
