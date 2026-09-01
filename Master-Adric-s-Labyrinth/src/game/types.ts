@@ -27,7 +27,8 @@ export type SectorId =
   | 'frequencies'
   | 'clarification'
   | 'bpmh'
-  | 'infusions';
+  | 'infusions'
+  | 'order-entry';
 
 /** An Overworld district — one per job aid. Drives grouping, not gating. */
 export type JobAidId = 'bpmh' | 'verification' | 'cpoe' | 'oncology';
