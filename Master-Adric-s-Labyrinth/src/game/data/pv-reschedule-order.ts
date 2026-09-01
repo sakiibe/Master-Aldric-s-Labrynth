@@ -14,6 +14,7 @@ export const pvRescheduleOrder: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 17-19)',
   hints: 3,
   patience: 4,
+  requires: ['pv-change-frequency'],
   briefing: [
     'The chimes ring at their usual hour, but this dose was asked for at a different one entirely.',
     'You may bend the clock before you sign, or after — the working is the same either way.',

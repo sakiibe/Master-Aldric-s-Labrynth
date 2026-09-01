@@ -12,6 +12,7 @@ export const cpoeModifyInfusionRate: WorkflowDef = {
   source: 'CPOE - Powerchart (p. 4)',
   hints: 1,
   patience: 2,
+  requires: ['cpoe-modify-order'],
   briefing: [
     'A steady drip must run faster now. Nothing else about the brew changes — only the flow.',
     'Find the right vessel, adjust the one number that matters, and let the rest be.',

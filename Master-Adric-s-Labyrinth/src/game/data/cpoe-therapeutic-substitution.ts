@@ -21,6 +21,7 @@ export const cpoeTherapeuticSubstitution: WorkflowDef = {
   source: 'CPOE - Powerchart (pp. 11-13, 15)',
   hints: 2,
   patience: 3,
+  requires: ['cpoe-powerplan'],
   briefing: [
     'The reagent asked for is not on our shelf — but a close cousin is. The ledger will offer you its equivalent.',
     'When the match is not exact, you must choose how the substitution proceeds. There is more than one correct way.',

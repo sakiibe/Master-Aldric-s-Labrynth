@@ -14,6 +14,7 @@ export const cpoeConvertToTitratable: WorkflowDef = {
   source: 'CPOE - Powerchart (pp. 4-5)',
   hints: 2,
   patience: 4,
+  requires: ['cpoe-modify-infusion-rate'],
   briefing: [
     'A fixed drip is no longer enough — the patient needs a brew that responds to them, titrated moment to moment.',
     'The old order cannot simply be edited into this shape. It must end, and a new one must be cast in its place.',

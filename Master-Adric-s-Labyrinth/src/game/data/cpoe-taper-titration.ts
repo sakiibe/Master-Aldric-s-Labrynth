@@ -12,6 +12,7 @@ export const cpoeTaperTitration: WorkflowDef = {
   source: 'CPOE - Powerchart (p. 16)',
   hints: 2,
   patience: 3,
+  requires: ['cpoe-therapeutic-substitution'],
   briefing: [
     'This dose does not stand still — it must climb, in measured steps, over many days.',
     'Cast the whole staircase at once, and the ledger will lay each step for you.',

@@ -20,6 +20,7 @@ export const oncVerifyIvSet: WorkflowDef = {
   source: 'Oncology Pharmacist Verification (pp. 2-9)',
   hints: 4,
   patience: 6,
+  requires: ['onc-clinical-verification'],
   briefing: [
     'A new brew waits, unproven, in the Future — it must pass your hand twice before it may touch the patient.',
     'Once before it wakes, and once after. Each time the same care: the vessel, the measure, the words on the label.',

@@ -13,6 +13,7 @@ export const oncModifyDose: WorkflowDef = {
   source: 'Oncology Pharmacist Verification (pp. 18-20)',
   hints: 2,
   patience: 3,
+  requires: ['onc-verify-compassionate-supply'],
   briefing: [
     'The oncologist wants a smaller pour this cycle — but the recipe itself, the Target, must not shift beneath it.',
     'Adjust the vessel, never the recipe. Cycle six must still remember what cycle one intended.',

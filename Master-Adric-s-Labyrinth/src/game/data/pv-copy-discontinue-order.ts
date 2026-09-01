@@ -17,6 +17,7 @@ export const pvCopyDiscontinueOrder: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 9-10)',
   hints: 2,
   patience: 3,
+  requires: ['pv-modify-order'],
   briefing: [
     'The dose itself must change this time — a touch-up will not do. The whole measure must be recast.',
   ],

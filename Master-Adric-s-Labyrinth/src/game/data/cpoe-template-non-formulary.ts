@@ -16,6 +16,7 @@ export const cpoeTemplateNonFormulary: WorkflowDef = {
   source: 'CPOE - Powerchart (pp. 8-9)',
   hints: 2,
   patience: 3,
+  requires: ['cpoe-patient-own-supply'],
   briefing: [
     'No shelf holds this reagent. It exists nowhere in our stores, and yet the prescriber wants it written down.',
     'When the ledger has no entry, you write your own — carefully, and in plain words.',

@@ -13,6 +13,7 @@ export const pvReprintLabel: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 19-20)',
   hints: 2,
   patience: 3,
+  requires: ['pv-reschedule-order'],
   briefing: [
     'A label was lost or smudged. The dispense itself must not be repeated — only the parchment.',
   ],

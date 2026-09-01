@@ -12,6 +12,7 @@ export const oncSkipRegimen: WorkflowDef = {
   source: 'Oncology Pharmacist Verification (pp. 22-23)',
   hints: 1,
   patience: 2,
+  requires: ['onc-pretreatment-powerplan'],
   briefing: [
     'Not every cycle proceeds on schedule. Sometimes the correct action is to pass this one by, cleanly, and move to the next.',
   ],

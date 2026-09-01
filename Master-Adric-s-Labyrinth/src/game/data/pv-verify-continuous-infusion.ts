@@ -18,6 +18,7 @@ export const pvVerifyContinuousInfusion: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 38-40)',
   hints: 2,
   patience: 4,
+  requires: ['pv-verify-powerplan'],
   briefing: [
     'A drip that never wavers, running at one fixed rate until told otherwise. Simple, but no less deserving of your eye.',
   ],

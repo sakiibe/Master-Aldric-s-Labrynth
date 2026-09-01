@@ -12,6 +12,7 @@ export const pvChangeOrderType: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 11-13)',
   hints: 2,
   patience: 3,
+  requires: ['pv-copy-discontinue-order'],
   briefing: [
     'The ledger sometimes cannot tell what shape a dose takes — a plain draught, a timed dose, or something ongoing. That judgement falls to you.',
   ],

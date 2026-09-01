@@ -13,6 +13,7 @@ export const pvAddIvSetPowderedVial: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 30-33)',
   hints: 3,
   patience: 4,
+  requires: ['pv-patient-own-supply-medmanager'],
   briefing: [
     'This reagent starts as dust, not liquid — the vessel it comes in has no volume of its own until you give it one.',
   ],

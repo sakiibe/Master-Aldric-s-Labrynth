@@ -17,6 +17,7 @@ export const pvAddOrderMedManager: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 6-7)',
   hints: 2,
   patience: 3,
+  requires: ['pv-verify-order'],
   briefing: [
     'You need not always wait for the incantation to arrive from elsewhere — some may be cast from right here.',
     'Cast it yourself, and it needs no second seal. That convenience is not free — it demands the same care.',

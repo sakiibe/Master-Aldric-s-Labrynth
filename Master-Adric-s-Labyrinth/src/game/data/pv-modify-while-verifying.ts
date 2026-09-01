@@ -13,6 +13,7 @@ export const pvModifyWhileVerifying: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 20-22)',
   hints: 3,
   patience: 4,
+  requires: ['pv-reprint-label'],
   briefing: [
     'A quick word with the prescriber changed the shape of this order — the route, the schedule, the reason it stands. Fold that into the working itself.',
   ],

@@ -16,6 +16,7 @@ export const pvChangeFrequency: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 13-16)',
   hints: 2,
   patience: 4,
+  requires: ['pv-change-order-type'],
   briefing: [
     'Every rhythm has its own clock — most follow the standard chimes, but some must follow the moment they were cast instead.',
   ],

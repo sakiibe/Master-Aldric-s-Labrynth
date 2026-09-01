@@ -18,6 +18,7 @@ export const oncVerifySyringe: WorkflowDef = {
   source: 'Oncology Pharmacist Verification (pp. 9-10)',
   hints: 2,
   patience: 3,
+  requires: ['onc-verify-iv-set'],
   briefing: [
     'Not every dose fills a bag — some go into a syringe, and the count of syringes matters as much as the measure.',
   ],

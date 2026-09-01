@@ -17,6 +17,7 @@ export const oncChangeDosingWeight: WorkflowDef = {
   source: 'Oncology Pharmacist Verification (pp. 24-25)',
   hints: 2,
   patience: 3,
+  requires: ['onc-skip-regimen'],
   briefing: [
     "The patient's weight has changed, and every weight-based measure in the calculator still remembers the old one.",
     'Two roads lead to the same correction. Take either — just take it.',

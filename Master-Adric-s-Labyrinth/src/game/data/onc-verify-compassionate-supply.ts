@@ -18,6 +18,7 @@ export const oncVerifyCompassionateSupply: WorkflowDef = {
   source: 'Oncology Pharmacist Verification (p. 17)',
   hints: 2,
   patience: 3,
+  requires: ['onc-verify-subcutaneous-syringe'],
   briefing: [
     'This reagent was never bought — it was given, outside the usual ledger. It still deserves the same care.',
   ],

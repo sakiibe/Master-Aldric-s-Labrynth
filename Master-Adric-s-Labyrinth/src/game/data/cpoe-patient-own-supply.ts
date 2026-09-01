@@ -18,6 +18,7 @@ export const cpoePatientOwnSupply: WorkflowDef = {
   source: 'CPOE - Powerchart (p. 8)',
   hints: 1,
   patience: 2,
+  requires: ['cpoe-weight-based-dosing'],
   briefing: [
     'The patient carries their own vial from home. There is no need to draw a fresh one from the shelf — only to say so.',
   ],

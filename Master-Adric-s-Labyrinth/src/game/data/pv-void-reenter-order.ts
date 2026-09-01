@@ -14,6 +14,7 @@ export const pvVoidReenterOrder: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 24-26)',
   hints: 3,
   patience: 4,
+  requires: ['pv-modify-while-verifying'],
   briefing: [
     'This one was never worth casting at all — a Template Non-Formulary where a real order was meant to stand.',
     'Undo it cleanly, and cast the true recipe in its place.',

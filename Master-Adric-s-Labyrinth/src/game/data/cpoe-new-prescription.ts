@@ -13,6 +13,7 @@ export const cpoeNewPrescription: WorkflowDef = {
   source: 'CPOE - Powerchart (pp. 18-19)',
   hints: 2,
   patience: 3,
+  requires: ['cpoe-convert-to-prescription'],
   briefing: [
     'This one was never ordered within these walls at all — it must be written from nothing.',
     'When the ledger has no page for it, the Miscellaneous entries will hold your hand-written words.',

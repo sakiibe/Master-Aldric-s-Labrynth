@@ -1,0 +1,456 @@
+<title>District Map Layouts</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+  :root{
+    --chrome-bg:#120d1f;
+    --scene-bg:#1b1230;
+    --surface:#2a1d47;
+    --surface-2:#241a3c;
+    --ink:#f4ead6;
+    --ink-muted:#c9b8e8;
+    --accent:#caa14a;
+    --good:#5fb87a;
+    --locked:#4a3d63;
+    --locked-ink:#8a80ab;
+    --ver:#7a5aa8;
+    --lane:#5a5288;
+    --star:#cfc7f0;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--chrome-bg);
+    color:var(--ink);
+    font-family:"Spectral",Georgia,serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .page{max-width:1180px;margin:0 auto;padding:40px 28px 80px;}
+
+  header.hero{margin-bottom:28px;}
+  .eyebrow{
+    font-family:"Spectral",Georgia,serif;
+    font-style:italic;
+    font-size:0.82rem;
+    color:var(--ink-muted);
+    letter-spacing:.04em;
+    margin:0 0 10px;
+  }
+  h1{
+    font-family:"Cinzel",Georgia,serif;
+    font-weight:600;
+    font-size:clamp(1.7rem,3vw,2.3rem);
+    margin:0 0 10px;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .sub{
+    max-width:62ch;
+    color:var(--ink-muted);
+    font-size:1rem;
+    line-height:1.6;
+    margin:0;
+  }
+  .testcase{
+    margin-top:16px;
+    display:inline-flex;
+    gap:18px;
+    align-items:center;
+    background:var(--surface);
+    border:1px solid color-mix(in srgb, var(--ver) 55%, var(--locked));
+    border-radius:10px;
+    padding:9px 16px;
+    font-size:.85rem;
+    color:var(--ink-muted);
+  }
+  .testcase b{color:var(--ink);font-weight:600;}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+  .dot.good{background:var(--good);}
+  .dot.current{background:var(--accent);}
+  .dot.sealed{background:var(--locked-ink);}
+
+  /* ---- tabs ---- */
+  .tabs{
+    display:flex;
+    gap:10px;
+    margin:30px 0 8px;
+    border-bottom:1px solid var(--locked);
+    padding-bottom:0;
+  }
+  .tab{
+    font-family:"Cinzel",Georgia,serif;
+    font-size:.82rem;
+    letter-spacing:.03em;
+    color:var(--ink-muted);
+    background:transparent;
+    border:none;
+    border-bottom:2px solid transparent;
+    padding:10px 4px 12px;
+    cursor:pointer;
+    transition:color 160ms, border-color 160ms;
+  }
+  .tab:hover{color:var(--ink);}
+  .tab:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+  .tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .verdict{
+    max-width:72ch;
+    color:var(--ink-muted);
+    font-size:.95rem;
+    line-height:1.65;
+    margin:16px 0 22px;
+  }
+  .verdict b{color:var(--ink);}
+
+  .scene-wrap{
+    overflow-x:auto;
+    border-radius:14px;
+    border:1px solid var(--locked);
+    background:var(--scene-bg);
+  }
+  .scene{position:relative;}
+  .scene svg.bg{display:block;position:absolute;inset:0;width:100%;height:100%;}
+
+  /* ---- nodes ---- */
+  .node{
+    position:absolute;
+    width:92px;
+    transform:translate(-50%,-100%);
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .node .icon{width:34px;height:34px;display:block;filter:drop-shadow(0 3px 5px rgba(0,0,0,.5));}
+  .node .label{
+    font-size:.68rem;
+    line-height:1.25;
+    color:var(--ink-muted);
+    max-width:92px;
+  }
+  .node.state-learned .label{color:var(--ink);}
+  .node.state-current .label{color:var(--accent);font-weight:600;}
+  .node.state-sealed{opacity:.62;}
+  .node.state-sealed .icon{filter:none;}
+
+  .node .glow{
+    position:absolute;
+    top:-8px;left:50%;
+    width:70px;height:70px;
+    transform:translate(-50%,-30%);
+    background:radial-gradient(circle,color-mix(in srgb, var(--accent) 55%, transparent) 0%,transparent 70%);
+    pointer-events:none;
+    z-index:-1;
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .node.state-current .glow{animation:pulse 2.6s ease-in-out infinite;}
+  }
+  @keyframes pulse{0%,100%{opacity:.7;}50%{opacity:1;}}
+
+  .hub-label{
+    position:absolute;
+    transform:translate(-50%,-100%);
+    font-family:"Cinzel",Georgia,serif;
+    font-size:.72rem;
+    letter-spacing:.03em;
+    color:var(--ink);
+    background:var(--surface);
+    border:1px solid color-mix(in srgb, var(--ver) 60%, var(--locked));
+    border-radius:5px;
+    padding:4px 10px;
+    white-space:nowrap;
+  }
+
+  .checkpoint{
+    position:absolute;
+    transform:translate(-50%,-50%);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+  }
+  .checkpoint .label{font-size:.6rem;color:var(--locked-ink);letter-spacing:.04em;text-transform:uppercase;}
+
+  /* ---- ladder rows ---- */
+  .ladder{padding:26px 0;}
+  .ladder-row{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:12px 34px;
+  }
+  .ladder-row .rail{
+    position:absolute;left:56px;top:0;bottom:0;width:2px;
+    background:var(--locked);
+  }
+  .ladder-row:first-child .rail{top:50%;}
+  .ladder-row:last-child .rail{bottom:50%;}
+  .ladder-row .icon{width:30px;height:30px;flex:none;z-index:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));}
+  .ladder-row .title{flex:1;font-size:.9rem;color:var(--ink-muted);}
+  .ladder-row.state-learned .title{color:var(--ink);}
+  .ladder-row.state-current .title{color:var(--ink);font-weight:600;}
+  .ladder-row.state-sealed{opacity:.6;}
+  .chip{
+    font-size:.66rem;
+    font-family:"Cinzel",Georgia,serif;
+    letter-spacing:.03em;
+    padding:3px 9px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .chip.learned{color:var(--good);border:1px solid color-mix(in srgb, var(--good) 55%, transparent);}
+  .chip.current{color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 60%, transparent);background:color-mix(in srgb, var(--accent) 12%, transparent);}
+  .chip.sealed{color:var(--locked-ink);border:1px solid var(--locked);}
+  .ladder-checkpoint{
+    display:flex;align-items:center;gap:10px;
+    padding:6px 34px 6px 56px;
+    color:var(--locked-ink);
+    font-size:.66rem;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+  .ladder-checkpoint::before{content:"";flex:none;width:8px;height:8px;background:var(--locked-ink);transform:rotate(45deg);}
+  .ladder-checkpoint::after{content:"";flex:1;height:1px;background:var(--locked);}
+
+  footer{margin-top:56px;color:var(--locked-ink);font-size:.78rem;}
+</style>
+
+<div class="page">
+  <header class="hero">
+    <p class="eyebrow">Master Aldric's Labyrinth — Overworld exploration</p>
+    <h1>Three ways to lay out a district</h1>
+    <p class="sub">Same test case in all three: the Pharmacist Verification district, its full 20 workflows, in their fixed unlock order. Two cleared, one open, the rest sealed until you reach them.</p>
+    <div class="testcase">
+      <span><span class="dot good"></span>2 learned</span>
+      <span><span class="dot current"></span>1 current — <b>Modifying an Order</b></span>
+      <span><span class="dot sealed"></span>17 sealed</span>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Layout options">
+    <button class="tab" role="tab" id="tab-clusters" aria-selected="true" aria-controls="panel-clusters">Chaptered Clusters</button>
+    <button class="tab" role="tab" id="tab-trail" aria-selected="false" aria-controls="panel-trail">Winding Trail</button>
+    <button class="tab" role="tab" id="tab-ladder" aria-selected="false" aria-controls="panel-ladder">Vertical Ladder</button>
+  </nav>
+
+  <section class="panel active" id="panel-clusters" role="tabpanel" aria-labelledby="tab-clusters">
+    <p class="verdict">Groups the fixed sequence into four contiguous stretches — <b>the order never changes</b>, only how it's read. Each hub gets its own lamp and name; clearing one is the checkpoint before the lane forks on to the next. Best at hiding the total count: you see one neighborhood at a time, not all 20 at once.</p>
+    <div class="scene-wrap"><div class="scene" id="scene-clusters"></div></div>
+  </section>
+
+  <section class="panel" id="panel-trail" role="tabpanel" aria-labelledby="tab-trail">
+    <p class="verdict">One continuous road, exactly like the Overworld's own lanes, just longer. Every workflow is a stop on the same path, with a small shrine marking every fifth one. Most literal read of "progress," but at 20 stops it's a real scroll — this preview is life-size, not shrunk.</p>
+    <div class="scene-wrap"><div class="scene" id="scene-trail"></div></div>
+  </section>
+
+  <section class="panel" id="panel-ladder" role="tabpanel" aria-labelledby="tab-ladder">
+    <p class="verdict">Drops the map metaphor for a level-select list — a house glyph and a state chip per row. Cheapest to build and scales to any count without redesign, but it's the one that stops feeling like a place.</p>
+    <div class="scene-wrap"><div class="scene" id="scene-ladder"></div></div>
+  </section>
+
+  <footer>Mockup only — house icon, three states (learned / current / sealed), and node positions are illustrative, not final art.</footer>
+</div>
+
+<script>
+const WORKFLOWS = [
+  {t:"Verify an Order", state:"learned", cluster:0},
+  {t:"Add an Order", state:"learned", cluster:0},
+  {t:"Modifying an Order", state:"current", cluster:0},
+  {t:"Copy & Discontinue", state:"sealed", cluster:0},
+  {t:"Changing an Order Type", state:"sealed", cluster:0},
+  {t:"Changing a Frequency", state:"sealed", cluster:1},
+  {t:"Rescheduling an Order", state:"sealed", cluster:1},
+  {t:"Reprint a Label", state:"sealed", cluster:1},
+  {t:"Clarifying While Verifying", state:"sealed", cluster:1},
+  {t:"Voiding & Re-entering", state:"sealed", cluster:1},
+  {t:"Rejecting for Reassessment", state:"sealed", cluster:2},
+  {t:"Patient Own Supply", state:"sealed", cluster:2},
+  {t:"IV Set: Powdered Vial", state:"sealed", cluster:2},
+  {t:"Combination Strengths", state:"sealed", cluster:2},
+  {t:"Verifying Powerplans", state:"sealed", cluster:2},
+  {t:"Continuous Infusion", state:"sealed", cluster:3},
+  {t:"Titratable Infusion", state:"sealed", cluster:3},
+  {t:"Bolus off a Bag", state:"sealed", cluster:3},
+  {t:"Building an IV Set", state:"sealed", cluster:3},
+  {t:"Invalid Dose Entry", state:"sealed", cluster:3},
+];
+const CLUSTER_NAMES = ["Everyday Verification","Scheduling & Records","Clinical Judgement","Infusions & Builds"];
+
+function houseIcon(state){
+  const badge = state === "learned"
+    ? `<circle cx="27" cy="8" r="7" fill="#1b1230" stroke="var(--good)" stroke-width="1.6"/>
+       <path d="M23.5 8 l2.4 2.6 L31 6" stroke="var(--good)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`
+    : state === "current"
+    ? `<circle cx="27" cy="8" r="7" fill="#1b1230" stroke="var(--accent)" stroke-width="1.6"/>
+       <circle cx="27" cy="8" r="2.4" fill="var(--accent)"/>`
+    : `<g transform="translate(27,8)"><rect x="-5" y="-1" width="10" height="8" rx="2" fill="var(--locked-ink)"/><path d="M-2.8 -1 v-3 a2.8 2.8 0 0 1 5.6 0 v3" stroke="var(--locked-ink)" stroke-width="1.6" fill="none"/></g>`;
+
+  const wallFill = state === "sealed" ? "#332852" : "#3d2f63";
+  const roofFill = state === "sealed" ? "#241a3c" : "#4a3a70";
+  const windowFill = state === "learned" ? "var(--good)" : state === "current" ? "var(--accent)" : "#241a3c";
+
+  return `<svg class="icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 34 L6 18 L20 6 L34 18 L34 34 Z" fill="${wallFill}"/>
+    <path d="M3 19 L20 4 L37 19 L34 22 L20 10 L6 22 Z" fill="${roofFill}"/>
+    <path d="M15 34 L15 26 a5 5 0 0 1 10 0 L25 34 Z" fill="#14101f"/>
+    <rect x="9" y="21" width="5" height="5" rx="1" fill="${windowFill}" opacity="${state==='sealed'?0.55:0.9}"/>
+    <rect x="26" y="21" width="5" height="5" rx="1" fill="${windowFill}" opacity="${state==='sealed'?0.55:0.9}"/>
+    ${badge}
+  </svg>`;
+}
+
+function bgSky(w,h,extra){
+  return `<svg class="bg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="sky" cx="50%" cy="6%" r="90%"><stop offset="0%" stop-color="#2f2754"/><stop offset="100%" stop-color="#161130"/></radialGradient>
+      <radialGradient id="verG" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#7a5aa8" stop-opacity="0.34"/><stop offset="100%" stop-color="#7a5aa8" stop-opacity="0"/></radialGradient>
+    </defs>
+    <rect x="0" y="0" width="${w}" height="${h}" fill="url(#sky)"/>
+    ${extra||""}
+  </svg>`;
+}
+
+function stars(n,w,h,seed){
+  let s=seed, pts="";
+  function rnd(){ s=(s*9301+49297)%233280; return s/233280; }
+  let out=[];
+  for(let i=0;i<n;i++){
+    out.push(`<circle cx="${(rnd()*w).toFixed(0)}" cy="${(rnd()*h*0.5).toFixed(0)}" r="${(rnd()*1.2+0.4).toFixed(1)}" fill="var(--star)" opacity="${(rnd()*0.5+0.3).toFixed(2)}"/>`);
+  }
+  return out.join("");
+}
+
+function el(html){ const d=document.createElement("div"); d.innerHTML=html.trim(); return d.firstElementChild; }
+
+/* ---------- Chaptered Clusters ---------- */
+function renderClusters(){
+  const W=1040,H=780;
+  const scene=document.getElementById("scene-clusters");
+  scene.style.width=W+"px"; scene.style.height=H+"px";
+
+  const hubs=[
+    {x:190,y:150},{x:790,y:190},{x:230,y:540},{x:800,y:580}
+  ];
+  const glows = hubs.map(h=>`<ellipse cx="${h.x}" cy="${h.y+40}" rx="185" ry="120" fill="url(#verG)"/>`).join("");
+
+  const lanes = `<g fill="none" stroke="var(--lane)" stroke-width="5" opacity="0.55" stroke-linecap="round">
+    <path d="M${hubs[0].x+90} ${hubs[0].y+40} Q ${(hubs[0].x+hubs[1].x)/2} ${hubs[0].y-30}, ${hubs[1].x-90} ${hubs[1].y+30}"/>
+    <path d="M${hubs[1].x} ${hubs[1].y+150} Q ${(hubs[1].x+hubs[3].x)/2+40} ${(hubs[1].y+hubs[3].y)/2}, ${hubs[3].x+10} ${hubs[3].y-140}"/>
+    <path d="M${hubs[0].x} ${hubs[0].y+220} Q ${(hubs[0].x+hubs[2].x)/2-20} ${(hubs[0].y+hubs[2].y)/2}, ${hubs[2].x} ${hubs[2].y-140}"/>
+    <path d="M${hubs[2].x+120} ${hubs[2].y+30} Q ${(hubs[2].x+hubs[3].x)/2} ${(hubs[2].y+hubs[3].y)/2+40}, ${hubs[3].x-140} ${hubs[3].y+10}"/>
+  </g>`;
+
+  scene.innerHTML = bgSky(W,H, glows + `<g>${stars(50,W,H,7)}</g>` + lanes);
+
+  hubs.forEach((h,ci)=>{
+    scene.appendChild(el(`<div class="hub-label" style="left:${h.x}px;top:${h.y-58}px">${CLUSTER_NAMES[ci]}</div>`));
+  });
+
+  // checkpoints between hub 0-1, 1-3, 0-2, 2-3 (after each 5-block boundary)
+  const checkpoints=[
+    {x:(hubs[0].x+hubs[1].x)/2, y:(hubs[0].y+hubs[1].y)/2-40, n:"Checkpoint I"},
+    {x:(hubs[1].x+hubs[3].x)/2+20, y:(hubs[1].y+hubs[3].y)/2, n:"Checkpoint II"},
+    {x:(hubs[2].x+hubs[3].x)/2, y:(hubs[2].y+hubs[3].y)/2+35, n:"Checkpoint III"},
+  ];
+  checkpoints.forEach(c=>{
+    scene.appendChild(el(`<div class="checkpoint" style="left:${c.x}px;top:${c.y}px">
+      <svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 2 L20 11 L11 20 L2 11 Z" fill="none" stroke="var(--locked-ink)" stroke-width="1.4"/></svg>
+      <span class="label">${c.n}</span></div>`));
+  });
+
+  const offsets5=[[-95,95],[-32,95],[32,95],[95,95],[0,160]];
+
+  let idx=0;
+  hubs.forEach((h,ci)=>{
+    const items = WORKFLOWS.filter(w=>w.cluster===ci);
+    items.forEach((w,i)=>{
+      const [dx,dy]=offsets5[i];
+      const x=h.x+dx, y=h.y+dy;
+      scene.appendChild(el(`<div class="node state-${w.state}" style="left:${x}px;top:${y}px">
+        ${w.state==='current'?'<div class="glow"></div>':''}
+        ${houseIcon(w.state)}
+        <span class="label">${w.t}</span>
+      </div>`));
+      idx++;
+    });
+  });
+}
+
+/* ---------- Winding Trail ---------- */
+function renderTrail(){
+  const W=640, H=WORKFLOWS.length*118+80;
+  const scene=document.getElementById("scene-trail");
+  scene.style.width=W+"px"; scene.style.height=H+"px";
+
+  const glow = `<ellipse cx="${W/2}" cy="${H/2}" rx="260" ry="${H/2-20}" fill="url(#verG)"/>`;
+  scene.innerHTML = bgSky(W,H, glow + `<g>${stars(70,W,H,3)}</g>`);
+
+  const pts = WORKFLOWS.map((w,i)=>{
+    const y = 70 + i*118;
+    const x = 320 + Math.round(Math.sin(i*0.85)*175);
+    return {x,y,w};
+  });
+
+  let path="M "+pts[0].x+" "+pts[0].y+" ";
+  for(let i=1;i<pts.length;i++) path += "L "+pts[i].x+" "+pts[i].y+" ";
+  const laneSvg = `<svg class="bg" style="z-index:0" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <path d="${path}" fill="none" stroke="var(--lane)" stroke-width="6" opacity="0.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+  scene.insertAdjacentHTML("beforeend", laneSvg);
+
+  pts.forEach((p,i)=>{
+    scene.appendChild(el(`<div class="node state-${p.w.state}" style="left:${p.x}px;top:${p.y+18}px">
+      ${p.w.state==='current'?'<div class="glow"></div>':''}
+      ${houseIcon(p.w.state)}
+      <span class="label">${p.w.t}</span>
+    </div>`));
+    if((i+1)%5===0 && i!==pts.length-1){
+      const nx=(p.x+pts[i+1].x)/2, ny=(p.y+pts[i+1].y)/2;
+      scene.appendChild(el(`<div class="checkpoint" style="left:${nx}px;top:${ny}px">
+        <svg width="20" height="20" viewBox="0 0 22 22"><path d="M11 2 L20 11 L11 20 L2 11 Z" fill="none" stroke="var(--locked-ink)" stroke-width="1.4"/></svg>
+      </div>`));
+    }
+  });
+}
+
+/* ---------- Vertical Ladder ---------- */
+function renderLadder(){
+  const scene=document.getElementById("scene-ladder");
+  scene.style.width="640px";
+  const wrap=document.createElement("div");
+  wrap.className="ladder";
+  WORKFLOWS.forEach((w,i)=>{
+    const row=document.createElement("div");
+    row.className="ladder-row state-"+w.state;
+    row.innerHTML = `<div class="rail"></div>${houseIcon(w.state)}<span class="title">${w.t}</span><span class="chip ${w.state}">${w.state==='learned'?'Learned':w.state==='current'?'Current':'Sealed'}</span>`;
+    wrap.appendChild(row);
+    if((i+1)%5===0 && i!==WORKFLOWS.length-1){
+      const cp=document.createElement("div");
+      cp.className="ladder-checkpoint";
+      cp.textContent="Checkpoint "+["I","II","III","IV"][Math.floor(i/5)];
+      wrap.appendChild(cp);
+    }
+  });
+  scene.appendChild(wrap);
+}
+
+renderClusters();
+renderTrail();
+renderLadder();
+
+/* tabs */
+const tabs=[...document.querySelectorAll(".tab")];
+tabs.forEach(tab=>{
+  tab.addEventListener("click",()=>{
+    tabs.forEach(t=>t.setAttribute("aria-selected", t===tab ? "true":"false"));
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    document.getElementById(tab.getAttribute("aria-controls")).classList.add("active");
+  });
+});
+</script>

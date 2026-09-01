@@ -15,6 +15,7 @@ export const pvVerifyPowerplan: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 36-38)',
   hints: 2,
   patience: 3,
+  requires: ['pv-verify-combination-strengths'],
   briefing: [
     'A whole bundle of orders arrives at once, all from the same working. Each one still needs your eye before it stands.',
   ],

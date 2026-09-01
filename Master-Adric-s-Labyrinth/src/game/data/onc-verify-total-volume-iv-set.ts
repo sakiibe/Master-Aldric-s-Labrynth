@@ -18,6 +18,7 @@ export const oncVerifyTotalVolumeIvSet: WorkflowDef = {
   source: 'Oncology Pharmacist Verification (pp. 11-12)',
   hints: 2,
   patience: 4,
+  requires: ['onc-verify-syringe'],
   briefing: [
     'Here the bag itself is the measure — the diluent is not an afterthought, it is arithmetic that must be exact.',
   ],

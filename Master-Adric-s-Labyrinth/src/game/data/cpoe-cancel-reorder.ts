@@ -12,6 +12,7 @@ export const cpoeCancelReorder: WorkflowDef = {
   source: 'CPOE - Powerchart (pp. 5-6)',
   hints: 1,
   patience: 2,
+  requires: ['cpoe-convert-to-titratable'],
   briefing: [
     'The dose itself must change — not a comment, not a rate. The dose.',
     'This calls for the whole recipe to be re-cast, not merely amended. Reach for the right ritual.',

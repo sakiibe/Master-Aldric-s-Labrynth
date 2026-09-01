@@ -18,6 +18,7 @@ export const pvPatientOwnSupplyMedManager: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 28-29)',
   hints: 2,
   patience: 3,
+  requires: ['pv-reject-for-reassessment'],
   briefing: [
     'The patient’s own vial arrives at your bench for verification, same as any other — but the ledger must know it costs nothing to dispense.',
   ],

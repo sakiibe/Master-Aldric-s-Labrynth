@@ -12,6 +12,7 @@ export const cpoeModifyOrder: WorkflowDef = {
   source: 'CPOE - Powerchart (p. 3)',
   hints: 1,
   patience: 2,
+  requires: ['cpoe-add-order'],
   briefing: [
     'An order already stands, but a small clause within it must change.',
     'Modify is a scalpel, not a chisel — it touches only what it is meant to. Reach for the wrong tool and you reshape the wrong thing.',

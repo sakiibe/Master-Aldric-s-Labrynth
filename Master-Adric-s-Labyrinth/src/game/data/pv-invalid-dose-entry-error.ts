@@ -13,6 +13,7 @@ export const pvInvalidDoseEntryError: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 50-51)',
   hints: 2,
   patience: 3,
+  requires: ['pv-build-iv-set-medmanager'],
   briefing: [
     'The ledger balks — a measure too small in units that make no sense for it. Somewhere, grams were asked to be millilitres.',
   ],

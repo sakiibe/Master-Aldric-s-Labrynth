@@ -18,6 +18,7 @@ export const oncVerifySubcutaneousSyringe: WorkflowDef = {
   source: 'Oncology Pharmacist Verification (pp. 15-16)',
   hints: 2,
   patience: 3,
+  requires: ['onc-verify-infusor'],
   briefing: [
     'The needle is shallow this time, not deep — but do not mistake that for a lesser working. The label rules stay the same.',
   ],

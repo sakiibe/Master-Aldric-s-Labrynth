@@ -16,6 +16,7 @@ export const pvVerifyTitratableInfusion: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 40-43)',
   hints: 3,
   patience: 4,
+  requires: ['pv-verify-continuous-infusion'],
   briefing: [
     'This drip answers to the patient, not the clock — its rate climbs and falls as their blood pressure demands.',
   ],

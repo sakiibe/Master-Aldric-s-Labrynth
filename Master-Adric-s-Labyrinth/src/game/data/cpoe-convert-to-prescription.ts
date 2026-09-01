@@ -13,6 +13,7 @@ export const cpoeConvertToPrescription: WorkflowDef = {
   source: 'CPOE - Powerchart (p. 18)',
   hints: 1,
   patience: 2,
+  requires: ['cpoe-self-administered-meds'],
   briefing: [
     'The patient leaves these walls, but the medicine must follow them home.',
     'What was ordered within must now be written as something they can carry.',

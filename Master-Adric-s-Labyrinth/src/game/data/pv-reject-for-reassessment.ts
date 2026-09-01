@@ -14,6 +14,7 @@ export const pvRejectForReassessment: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 26-28)',
   hints: 2,
   patience: 4,
+  requires: ['pv-void-reenter-order'],
   briefing: [
     'Nothing here was mis-cast — it was simply the wrong recipe for what ails this patient. That is the prescriber’s judgement to revisit, not yours to overwrite.',
   ],

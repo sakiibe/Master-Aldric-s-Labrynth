@@ -13,6 +13,7 @@ export const oncChangeIvSetProduct: WorkflowDef = {
   source: 'Oncology Pharmacist Verification (pp. 26-27)',
   hints: 2,
   patience: 3,
+  requires: ['onc-change-dosing-weight'],
   briefing: [
     'Swap the vial, and the notes that came with it vanish — the warnings, the reconstitution instructions, all of it.',
     'Copy what matters before you break it. This is the whole discipline, in one small ritual.',

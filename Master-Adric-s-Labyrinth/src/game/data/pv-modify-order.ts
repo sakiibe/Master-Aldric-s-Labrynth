@@ -17,6 +17,7 @@ export const pvModifyOrder: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 7-8)',
   hints: 2,
   patience: 3,
+  requires: ['pv-add-order-medmanager'],
   briefing: [
     'A small clause needs a touch-up, nothing more — the dose and frequency stay exactly as cast.',
   ],

@@ -12,6 +12,7 @@ export const cpoePowerplan: WorkflowDef = {
   source: 'CPOE - Powerchart (pp. 9-11)',
   hints: 2,
   patience: 3,
+  requires: ['cpoe-template-non-formulary'],
   briefing: [
     'Some rituals are too large for one incantation — a whole admission’s worth of orders, bundled as one grand working.',
     'Not every clause casts itself. Some wait, dormant, for your hand.',

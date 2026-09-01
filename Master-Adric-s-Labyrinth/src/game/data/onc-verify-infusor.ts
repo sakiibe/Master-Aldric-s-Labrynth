@@ -19,6 +19,7 @@ export const oncVerifyInfusor: WorkflowDef = {
   source: 'Oncology Pharmacist Verification (pp. 13-14)',
   hints: 2,
   patience: 3,
+  requires: ['onc-verify-total-volume-iv-set'],
   briefing: [
     'This dose does not stop at the bedside — it travels with the patient, sealed in its own small engine, for days.',
     'Some are drawn ready-made from the shelf; others must be built here. Know which shelf to reach for.',

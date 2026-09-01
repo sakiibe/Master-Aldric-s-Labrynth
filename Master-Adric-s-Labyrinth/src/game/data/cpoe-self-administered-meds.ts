@@ -17,6 +17,7 @@ export const cpoeSelfAdministeredMeds: WorkflowDef = {
   source: 'CPOE - Powerchart (p. 17)',
   hints: 1,
   patience: 2,
+  requires: ['cpoe-taper-titration'],
   briefing: [
     'Some patients may measure their own doses — but the ledger must still know it.',
     'The path differs by hall: Rehab keeps its own custom, and the Transplant Clinic keeps another.',

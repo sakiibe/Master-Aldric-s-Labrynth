@@ -13,6 +13,7 @@ export const pvVerifyBolusContinuousBag: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 43-45)',
   hints: 2,
   patience: 3,
+  requires: ['pv-verify-titratable-infusion'],
   briefing: [
     'The drip runs on, unbothered — but a single extra measure is needed from the very same bag, right now.',
   ],

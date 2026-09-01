@@ -16,6 +16,7 @@ export const pvBuildIvSetMedManager: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 46-49)',
   hints: 3,
   patience: 5,
+  requires: ['pv-verify-bolus-continuous-bag'],
   briefing: [
     'No shelf holds this exact compound pre-made — a Template Non-Formulary stands in its place, but the formulary can build the real thing.',
     'Cast it component by component, and let the free-text order fade once the true one stands.',

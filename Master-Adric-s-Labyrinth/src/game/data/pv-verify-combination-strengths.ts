@@ -13,6 +13,7 @@ export const pvVerifyCombinationStrengths: WorkflowDef = {
   source: 'Pharmacist Verification & Med Manager v.1 (pp. 34-36)',
   hints: 2,
   patience: 3,
+  requires: ['pv-add-iv-set-powdered-vial'],
   briefing: [
     'One dose, two vessels of different measure — combining them on a single order looks tidy now, but tangles the ledger later. Split them instead.',
   ],

@@ -13,6 +13,7 @@ export const oncPretreatmentPowerplan: WorkflowDef = {
   source: 'Oncology Pharmacist Verification (pp. 20-22)',
   hints: 2,
   patience: 3,
+  requires: ['onc-modify-dose'],
   briefing: [
     'Before the first true dose, there is preparation — pre-medications, labs, prescriptions to send ahead.',
     'Everything here must be ready before treatment day arrives, or the whole regimen waits on you.',

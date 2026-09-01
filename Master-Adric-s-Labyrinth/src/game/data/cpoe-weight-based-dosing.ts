@@ -12,6 +12,7 @@ export const cpoeWeightBasedDosing: WorkflowDef = {
   source: 'CPOE - Powerchart (pp. 6-7)',
   hints: 2,
   patience: 3,
+  requires: ['cpoe-cancel-reorder'],
   briefing: [
     'The measure here is not fixed — it must be weighed against the patient themself.',
     'A hand-set dose is a guess dressed as certainty. Let the scale speak instead.',
