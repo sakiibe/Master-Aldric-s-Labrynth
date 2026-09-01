@@ -27,6 +27,26 @@ import { oncPretreatmentPowerplan } from './onc-pretreatment-powerplan';
 import { oncSkipRegimen } from './onc-skip-regimen';
 import { oncChangeDosingWeight } from './onc-change-dosing-weight';
 import { oncChangeIvSetProduct } from './onc-change-iv-set-product';
+import { pvVerifyOrder } from './pv-verify-order';
+import { pvAddOrderMedManager } from './pv-add-order-medmanager';
+import { pvModifyOrder } from './pv-modify-order';
+import { pvCopyDiscontinueOrder } from './pv-copy-discontinue-order';
+import { pvChangeOrderType } from './pv-change-order-type';
+import { pvChangeFrequency } from './pv-change-frequency';
+import { pvRescheduleOrder } from './pv-reschedule-order';
+import { pvReprintLabel } from './pv-reprint-label';
+import { pvModifyWhileVerifying } from './pv-modify-while-verifying';
+import { pvVoidReenterOrder } from './pv-void-reenter-order';
+import { pvRejectForReassessment } from './pv-reject-for-reassessment';
+import { pvPatientOwnSupplyMedManager } from './pv-patient-own-supply-medmanager';
+import { pvAddIvSetPowderedVial } from './pv-add-iv-set-powdered-vial';
+import { pvVerifyCombinationStrengths } from './pv-verify-combination-strengths';
+import { pvVerifyPowerplan } from './pv-verify-powerplan';
+import { pvVerifyContinuousInfusion } from './pv-verify-continuous-infusion';
+import { pvVerifyTitratableInfusion } from './pv-verify-titratable-infusion';
+import { pvVerifyBolusContinuousBag } from './pv-verify-bolus-continuous-bag';
+import { pvBuildIvSetMedManager } from './pv-build-iv-set-medmanager';
+import { pvInvalidDoseEntryError } from './pv-invalid-dose-entry-error';
 
 export { documentMedByHx } from './bpmh-document-med-hx';
 export { admissionMedRec } from './bpmh-admission-med-rec';
@@ -56,6 +76,26 @@ export { oncPretreatmentPowerplan } from './onc-pretreatment-powerplan';
 export { oncSkipRegimen } from './onc-skip-regimen';
 export { oncChangeDosingWeight } from './onc-change-dosing-weight';
 export { oncChangeIvSetProduct } from './onc-change-iv-set-product';
+export { pvVerifyOrder } from './pv-verify-order';
+export { pvAddOrderMedManager } from './pv-add-order-medmanager';
+export { pvModifyOrder } from './pv-modify-order';
+export { pvCopyDiscontinueOrder } from './pv-copy-discontinue-order';
+export { pvChangeOrderType } from './pv-change-order-type';
+export { pvChangeFrequency } from './pv-change-frequency';
+export { pvRescheduleOrder } from './pv-reschedule-order';
+export { pvReprintLabel } from './pv-reprint-label';
+export { pvModifyWhileVerifying } from './pv-modify-while-verifying';
+export { pvVoidReenterOrder } from './pv-void-reenter-order';
+export { pvRejectForReassessment } from './pv-reject-for-reassessment';
+export { pvPatientOwnSupplyMedManager } from './pv-patient-own-supply-medmanager';
+export { pvAddIvSetPowderedVial } from './pv-add-iv-set-powdered-vial';
+export { pvVerifyCombinationStrengths } from './pv-verify-combination-strengths';
+export { pvVerifyPowerplan } from './pv-verify-powerplan';
+export { pvVerifyContinuousInfusion } from './pv-verify-continuous-infusion';
+export { pvVerifyTitratableInfusion } from './pv-verify-titratable-infusion';
+export { pvVerifyBolusContinuousBag } from './pv-verify-bolus-continuous-bag';
+export { pvBuildIvSetMedManager } from './pv-build-iv-set-medmanager';
+export { pvInvalidDoseEntryError } from './pv-invalid-dose-entry-error';
 
 /** Registry of every authored workflow. Drives the Overworld. */
 export const workflows: WorkflowDef[] = [
@@ -87,4 +127,24 @@ export const workflows: WorkflowDef[] = [
   oncSkipRegimen,
   oncChangeDosingWeight,
   oncChangeIvSetProduct,
+  pvVerifyOrder,
+  pvAddOrderMedManager,
+  pvModifyOrder,
+  pvCopyDiscontinueOrder,
+  pvChangeOrderType,
+  pvChangeFrequency,
+  pvRescheduleOrder,
+  pvReprintLabel,
+  pvModifyWhileVerifying,
+  pvVoidReenterOrder,
+  pvRejectForReassessment,
+  pvPatientOwnSupplyMedManager,
+  pvAddIvSetPowderedVial,
+  pvVerifyCombinationStrengths,
+  pvVerifyPowerplan,
+  pvVerifyContinuousInfusion,
+  pvVerifyTitratableInfusion,
+  pvVerifyBolusContinuousBag,
+  pvBuildIvSetMedManager,
+  pvInvalidDoseEntryError,
 ];
