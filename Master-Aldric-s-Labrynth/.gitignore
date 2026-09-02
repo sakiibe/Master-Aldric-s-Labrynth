@@ -20,6 +20,10 @@ dist-ssr
 .env.*
 !.env.example
 
+# Local Claude Code config — kept on disk, not tracked
+.claude/
+CLAUDE.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
