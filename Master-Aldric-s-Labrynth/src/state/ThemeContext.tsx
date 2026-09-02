@@ -3,13 +3,14 @@
  * game/theme.ts directly. Alchemy is the only theme, so there is nothing to
  * choose between yet — this exists so that could change without a sweep
  * through every scene.
+ *
+ * The context object and `useTheme` hook live in ./useTheme so this file
+ * exports only a component (react-refresh/only-export-components).
  */
 
-import { createContext, useContext, type ReactNode } from 'react';
-import type { ThemeTokens } from '../game/types';
+import { type ReactNode } from 'react';
 import { theme } from '../game/theme';
-
-const ThemeContext = createContext<ThemeTokens>(theme);
+import { ThemeContext } from './useTheme';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
 	const vars = {
@@ -34,8 +35,4 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 			</div>
 		</ThemeContext.Provider>
 	);
-}
-
-export function useTheme(): ThemeTokens {
-	return useContext(ThemeContext);
 }

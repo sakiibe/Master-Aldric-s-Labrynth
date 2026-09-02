@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { BuiltWorkflow, JobAidId, WorkflowId } from '../../game/types';
-import { useTheme } from '../../state/ThemeContext';
+import { useTheme } from '../../state/useTheme';
 
 /**
  * The Overworld — one continuous night map. Four districts (job aids), each

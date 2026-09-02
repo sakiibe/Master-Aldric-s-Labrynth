@@ -1,5 +1,5 @@
 import type { BuiltWorkflow, DeadEnd as DeadEndState } from '../../game/types';
-import { useTheme } from '../../state/ThemeContext';
+import { useTheme } from '../../state/useTheme';
 import { DialogueBox } from '../components/DialogueBox';
 import { RoomBackdrop } from '../art/RoomBackdrop';
 import { getDeadEndArt } from '../art/registry';
@@ -14,7 +14,7 @@ export function DeadEnd({ workflow, deadEnd, onBacktrack }: DeadEndProps) {
 	const theme = useTheme();
 	const scene =
 		theme.deadEndScenes[deadEnd.sceneIndex % theme.deadEndScenes.length];
-	const Art = getDeadEndArt(scene.art);
+	const art = getDeadEndArt(scene.art);
 	const citation = deadEnd.aidRef
 		? `— ${workflow.source}, ${deadEnd.aidRef}`
 		: `— ${workflow.source}`;
@@ -24,9 +24,7 @@ export function DeadEnd({ workflow, deadEnd, onBacktrack }: DeadEndProps) {
 			<div className="scene-art scene-art--backdrop">
 				<RoomBackdrop />
 			</div>
-			<div className="scene-art scene-art--character">
-				<Art />
-			</div>
+			<div className="scene-art scene-art--character">{art}</div>
 
 			<DialogueBox speaker={theme.labels.mentor} line={scene.line}>
 				<p className="dialogue-rule">{deadEnd.rule}</p>

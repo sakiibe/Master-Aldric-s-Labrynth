@@ -1,16 +1,22 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { useTheme } from '../../state/ThemeContext';
+import { useTheme } from '../../state/useTheme';
 
 /** Reveals `text` one character at a time. Resets whenever `text` changes. */
 function useTypewriter(text: string, speedMs: number): string {
-	const [shown, setShown] = useState('');
+	const [shown, setShown] = useState(() => (speedMs <= 0 ? text : ''));
+	const [prevText, setPrevText] = useState(text);
+
+	// Reset the reveal when the line changes. Done during render — the
+	// sanctioned "adjust state on prop change" pattern — rather than
+	// synchronously in the effect, which triggers a cascading re-render
+	// (react-hooks/set-state-in-effect).
+	if (text !== prevText) {
+		setPrevText(text);
+		setShown(speedMs <= 0 ? text : '');
+	}
 
 	useEffect(() => {
-		if (speedMs <= 0) {
-			setShown(text);
-			return;
-		}
-		setShown('');
+		if (speedMs <= 0) return;
 		let i = 0;
 		const id = window.setInterval(() => {
 			i += 1;

@@ -1,4 +1,4 @@
-import { useTheme } from '../../state/ThemeContext';
+import { useTheme } from '../../state/useTheme';
 
 interface PatienceMeterProps {
 	remaining: number;

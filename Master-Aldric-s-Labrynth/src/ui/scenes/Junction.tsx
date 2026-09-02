@@ -1,5 +1,5 @@
 import type { BuiltStep, DoorId, StepId, TakenStep } from '../../game/types';
-import { useTheme } from '../../state/ThemeContext';
+import { useTheme } from '../../state/useTheme';
 import { Door } from '../components/Door';
 import { HintButton } from '../components/HintButton';
 import { PathTrail } from '../components/PathTrail';
@@ -33,13 +33,11 @@ export function Junction({
 }: JunctionProps) {
 	const theme = useTheme();
 	const hinted = hintedSteps.includes(step.id);
-	const Art = getJunctionArt(theme.assets.junctionArt);
+	const art = getJunctionArt(theme.assets.junctionArt);
 
 	return (
 		<div className="junction-scene">
-			<div className="scene-art scene-art--backdrop">
-				<Art />
-			</div>
+			<div className="scene-art scene-art--backdrop">{art}</div>
 
 			<div className="junction-header">
 				<div className="junction-location">{step.location}</div>
