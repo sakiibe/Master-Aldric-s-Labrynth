@@ -1,73 +1,70 @@
-# React + TypeScript + Vite
+# Master Aldric's Labyrinth
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A web-based training game that teaches Nova Scotia Health pharmacy staff the
+"clickology" of Oracle Cerner workflows ahead of Go-Live. A follow-up to
+[Charts, Please!](../charts-please).
 
-Currently, two official plugins are available:
+The audience is already trained on Cerner, so this is a knowledge check, not
+first exposure. At each junction the player sees three doors labelled with real
+Cerner buttons (`Product…`, `Comments…`, `Order Type`) and picks the correct
+next step:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Correct pick** advances through the workflow.
+- **Wrong pick** hits a dead end that shows the rule from the job aid, then
+  returns the player to the same junction.
 
-## React Compiler
+It is wrapped in an apothecary/alchemy theme: a mentor, **Master Aldric**,
+gives briefings and delivers the dead-end rules. No leaderboard and no timer —
+the two scarce resources are **Aldric's patience** (a wrong pick costs one; at
+zero the workflow restarts) and **hints** (spend one to make the correct door
+glow). Progress persists in `localStorage`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+React 19 + TypeScript (Vite 8), Vitest for the engine tests. Fully static, no
+backend.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Getting Started
 
-```js
-export default defineConfig([
-	globalIgnores(['dist']),
-	{
-		files: ['**/*.{ts,tsx}'],
-		extends: [
-			// Other configs...
+Node.js 20.19+ and npm. All commands run from this directory:
 
-			// Remove tseslint.configs.recommended and replace with this
-			tseslint.configs.recommendedTypeChecked,
-			// Alternatively, use this for stricter rules
-			tseslint.configs.strictTypeChecked,
-			// Optionally, add this for stylistic rules
-			tseslint.configs.stylisticTypeChecked,
-
-			// Other configs...
-		],
-		languageOptions: {
-			parserOptions: {
-				project: ['./tsconfig.node.json', './tsconfig.app.json'],
-				tsconfigRootDir: import.meta.dirname,
-			},
-			// other options...
-		},
-	},
-]);
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # tsc type-check + vite build
+npm run lint       # eslint over all .ts/.tsx
+npm run test:run   # run the engine unit tests once
+npm run typecheck  # tsc, no emit
+npm run format     # prettier --write .
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Structure
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
+The code is strictly layered `types → data → engine → state → ui`, with two
+rules enforced throughout:
 
-export default defineConfig([
-	globalIgnores(['dist']),
-	{
-		files: ['**/*.{ts,tsx}'],
-		extends: [
-			// Other configs...
-			// Enable lint rules for React
-			reactX.configs['recommended-typescript'],
-			// Enable lint rules for React DOM
-			reactDom.configs.recommended,
-		],
-		languageOptions: {
-			parserOptions: {
-				project: ['./tsconfig.node.json', './tsconfig.app.json'],
-				tsconfigRootDir: import.meta.dirname,
-			},
-			// other options...
-		},
-	},
-]);
+1. **`game/` imports nothing from `state/` or `ui/`** — no React, DOM,
+   `localStorage`, `Date.now()`, or `Math.random()`. The whole game loop is
+   unit-testable without rendering anything.
+2. **`ui/` never imports `data/` directly** — it receives a built workflow from
+   `state/`.
+
 ```
+src/
+├── game/     # pure logic: types, seeded rng, buildWorkflow, engine, theme, data/
+├── state/    # the only layer that touches localStorage
+└── ui/       # scenes, components, and inline SVG art
+```
+
+Workflows are hand-authored from job aid PDFs as loose "authoring" types, then
+`buildWorkflow()` normalises them into strict "built" types that the engine
+consumes.
+
+## Team
+
+Aitzaz, Sakib
+
+## Status
+
+In development. Core engine and the vertical slice are playable; remaining work
+is the Briefing/Complete scenes, remaining art, and content.
