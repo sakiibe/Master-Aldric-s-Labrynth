@@ -4,17 +4,23 @@
  * Every transition returns a new `RunState`; nothing here mutates its input.
  */
 
-import type { BuiltWorkflow, DeadEnd, DoorId, RunState, WorkflowId } from './types';
+import type {
+	BuiltWorkflow,
+	DeadEnd,
+	DoorId,
+	RunState,
+	WorkflowId,
+} from './types';
 
 /**
  * Whether a workflow's prerequisites are satisfied. Drives Overworld lock
  * state — a workflow with no `requires` is always unlocked.
  */
 export function isUnlocked(
-  requires: WorkflowId[],
-  completed: WorkflowId[],
+	requires: WorkflowId[],
+	completed: WorkflowId[],
 ): boolean {
-  return requires.every((id) => completed.includes(id));
+	return requires.every((id) => completed.includes(id));
 }
 
 /**
@@ -23,19 +29,19 @@ export function isUnlocked(
  * lost run is punishment enough, so a restart carries no penalty forward.
  */
 export function restart(workflow: BuiltWorkflow): RunState {
-  return {
-    workflowId: workflow.id,
-    status: 'briefing',
-    stepId: workflow.entryStepId,
-    visited: [workflow.entryStepId],
-    taken: [],
-    hintsRemaining: workflow.hints,
-    hintedSteps: [],
-    wrongCount: 0,
-    wrongByStep: {},
-    sceneCursor: 0,
-    patienceRemaining: workflow.patience,
-  };
+	return {
+		workflowId: workflow.id,
+		status: 'briefing',
+		stepId: workflow.entryStepId,
+		visited: [workflow.entryStepId],
+		taken: [],
+		hintsRemaining: workflow.hints,
+		hintedSteps: [],
+		wrongCount: 0,
+		wrongByStep: {},
+		sceneCursor: 0,
+		patienceRemaining: workflow.patience,
+	};
 }
 
 /**
@@ -43,8 +49,8 @@ export function restart(workflow: BuiltWorkflow): RunState {
  * has moved past 'briefing', so it is always safe to call.
  */
 export function progress(run: RunState): RunState {
-  if (run.status !== 'briefing') return run;
-  return { ...run, status: 'junction' };
+	if (run.status !== 'briefing') return run;
+	return { ...run, status: 'junction' };
 }
 
 /**
@@ -58,52 +64,52 @@ export function progress(run: RunState): RunState {
  * ends the run.
  */
 export function choose(
-  workflow: BuiltWorkflow,
-  run: RunState,
-  doorId: DoorId,
+	workflow: BuiltWorkflow,
+	run: RunState,
+	doorId: DoorId,
 ): RunState {
-  const step = workflow.byId[run.stepId];
-  const door = step.doors.find((d) => d.id === doorId);
-  if (!door) {
-    throw new Error(`door "${doorId}" is not part of step "${run.stepId}"`);
-  }
+	const step = workflow.byId[run.stepId];
+	const door = step.doors.find((d) => d.id === doorId);
+	if (!door) {
+		throw new Error(`door "${doorId}" is not part of step "${run.stepId}"`);
+	}
 
-  if (door.kind === 'correct') {
-    const taken = [...run.taken, { stepId: run.stepId, label: door.label }];
-    if (door.next === null || door.next === undefined) {
-      return { ...run, status: 'complete', taken };
-    }
-    return {
-      ...run,
-      status: 'junction',
-      stepId: door.next,
-      visited: [...run.visited, door.next],
-      taken,
-    };
-  }
+	if (door.kind === 'correct') {
+		const taken = [...run.taken, { stepId: run.stepId, label: door.label }];
+		if (door.next === null || door.next === undefined) {
+			return { ...run, status: 'complete', taken };
+		}
+		return {
+			...run,
+			status: 'junction',
+			stepId: door.next,
+			visited: [...run.visited, door.next],
+			taken,
+		};
+	}
 
-  const patienceRemaining = run.patienceRemaining - 1;
-  const deadEnd: DeadEnd = {
-    stepId: run.stepId,
-    doorId: door.id,
-    label: door.label,
-    rule: door.rule!,
-    source: door.source!,
-    aidRef: door.aidRef,
-    sceneIndex: run.sceneCursor,
-  };
-  return {
-    ...run,
-    status: patienceRemaining <= 0 ? 'failed' : 'deadEnd',
-    deadEnd,
-    wrongCount: run.wrongCount + 1,
-    wrongByStep: {
-      ...run.wrongByStep,
-      [run.stepId]: (run.wrongByStep[run.stepId] ?? 0) + 1,
-    },
-    patienceRemaining,
-    sceneCursor: run.sceneCursor + 1,
-  };
+	const patienceRemaining = run.patienceRemaining - 1;
+	const deadEnd: DeadEnd = {
+		stepId: run.stepId,
+		doorId: door.id,
+		label: door.label,
+		rule: door.rule!,
+		source: door.source!,
+		aidRef: door.aidRef,
+		sceneIndex: run.sceneCursor,
+	};
+	return {
+		...run,
+		status: patienceRemaining <= 0 ? 'failed' : 'deadEnd',
+		deadEnd,
+		wrongCount: run.wrongCount + 1,
+		wrongByStep: {
+			...run.wrongByStep,
+			[run.stepId]: (run.wrongByStep[run.stepId] ?? 0) + 1,
+		},
+		patienceRemaining,
+		sceneCursor: run.sceneCursor + 1,
+	};
 }
 
 /**
@@ -113,8 +119,8 @@ export function choose(
  * it needs `restart()`).
  */
 export function backtrack(run: RunState): RunState {
-  if (run.status !== 'deadEnd') return run;
-  return { ...run, status: 'junction', deadEnd: undefined };
+	if (run.status !== 'deadEnd') return run;
+	return { ...run, status: 'junction', deadEnd: undefined };
 }
 
 /**
@@ -124,11 +130,11 @@ export function backtrack(run: RunState): RunState {
  * backtrack because it lives in `hintedSteps`, which neither touches.
  */
 export function useHint(run: RunState): RunState {
-  if (run.hintedSteps.includes(run.stepId)) return run;
-  if (run.hintsRemaining <= 0) return run;
-  return {
-    ...run,
-    hintsRemaining: run.hintsRemaining - 1,
-    hintedSteps: [...run.hintedSteps, run.stepId],
-  };
+	if (run.hintedSteps.includes(run.stepId)) return run;
+	if (run.hintsRemaining <= 0) return run;
+	return {
+		...run,
+		hintsRemaining: run.hintsRemaining - 1,
+		hintedSteps: [...run.hintedSteps, run.stepId],
+	};
 }

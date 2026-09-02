@@ -12,30 +12,30 @@ import { theme } from '../game/theme';
 const ThemeContext = createContext<ThemeTokens>(theme);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const vars = {
-    '--color-bg': theme.colors.bg,
-    '--color-surface': theme.colors.surface,
-    '--color-ink': theme.colors.ink,
-    '--color-ink-muted': theme.colors.inkMuted,
-    '--color-accent': theme.colors.accent,
-    '--color-correct': theme.colors.correct,
-    '--color-wrong': theme.colors.wrong,
-    '--color-locked': theme.colors.locked,
-    '--color-cleared': theme.colors.cleared,
-    '--font-display': theme.fonts.display,
-    '--font-body': theme.fonts.body,
-    '--font-ui': theme.fonts.ui,
-  } as React.CSSProperties;
+	const vars = {
+		'--color-bg': theme.colors.bg,
+		'--color-surface': theme.colors.surface,
+		'--color-ink': theme.colors.ink,
+		'--color-ink-muted': theme.colors.inkMuted,
+		'--color-accent': theme.colors.accent,
+		'--color-correct': theme.colors.correct,
+		'--color-wrong': theme.colors.wrong,
+		'--color-locked': theme.colors.locked,
+		'--color-cleared': theme.colors.cleared,
+		'--font-display': theme.fonts.display,
+		'--font-body': theme.fonts.body,
+		'--font-ui': theme.fonts.ui,
+	} as React.CSSProperties;
 
-  return (
-    <ThemeContext.Provider value={theme}>
-      <div className="theme-root" style={vars}>
-        {children}
-      </div>
-    </ThemeContext.Provider>
-  );
+	return (
+		<ThemeContext.Provider value={theme}>
+			<div className="theme-root" style={vars}>
+				{children}
+			</div>
+		</ThemeContext.Provider>
+	);
 }
 
 export function useTheme(): ThemeTokens {
-  return useContext(ThemeContext);
+	return useContext(ThemeContext);
 }

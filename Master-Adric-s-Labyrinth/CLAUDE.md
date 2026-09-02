@@ -103,8 +103,8 @@ transcription work against. Do not change them without flagging it.
 Everything a player reads must be transcription, not invention. Concretely:
 
 - `StepDef.rule` (required) states **positively** what the job aid says the
-  correct action is: *"Document Compliance and Last Dose taken in the
-  Compliance tab."* It is shown at the dead end behind **any** wrong door at
+  correct action is: _"Document Compliance and Last Dose taken in the
+  Compliance tab."_ It is shown at the dead end behind **any** wrong door at
   that junction.
 - `WrongChoice.rule` is optional, used only where the aid speaks to that
   specific option (e.g. the "No Known Home Medications" note). Requires a

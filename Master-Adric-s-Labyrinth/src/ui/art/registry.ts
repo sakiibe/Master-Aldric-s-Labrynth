@@ -12,20 +12,20 @@ import { ArtFallback } from './ArtFallback';
 import { JunctionBackdrop } from './JunctionBackdrop';
 
 const deadEndArt: Record<string, ComponentType> = {
-  'aldric-bath': AldricBath,
-  'aldric-makeup': AldricMakeup,
-  'aldric-figurines': AldricFigurines,
-  'aldric-cauldron': AldricCauldron,
+	'aldric-bath': AldricBath,
+	'aldric-makeup': AldricMakeup,
+	'aldric-figurines': AldricFigurines,
+	'aldric-cauldron': AldricCauldron,
 };
 
 export function getDeadEndArt(key: string): ComponentType {
-  return deadEndArt[key] ?? ArtFallback;
+	return deadEndArt[key] ?? ArtFallback;
 }
 
 const junctionArt: Record<string, ComponentType> = {
-  'junction-default': JunctionBackdrop,
+	'junction-default': JunctionBackdrop,
 };
 
 export function getJunctionArt(key: string): ComponentType {
-  return junctionArt[key] ?? ArtFallback;
+	return junctionArt[key] ?? ArtFallback;
 }

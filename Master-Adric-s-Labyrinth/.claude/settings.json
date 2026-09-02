@@ -1,21 +1,21 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(npm run typecheck)",
-      "Bash(npm run test:*)",
-      "Bash(npm run build)",
-      "Bash(npx tsc --noEmit)",
-      "Bash(npx vitest run:*)",
-      "Bash(git status)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)"
-    ],
-    "deny": [
-      "Bash(rm -rf:*)",
-      "Bash(git push:*)",
-      "Bash(npm publish:*)",
-      "Read(./.env)",
-      "Read(./.env.*)"
-    ]
-  }
+	"permissions": {
+		"allow": [
+			"Bash(npm run typecheck)",
+			"Bash(npm run test:*)",
+			"Bash(npm run build)",
+			"Bash(npx tsc --noEmit)",
+			"Bash(npx vitest run:*)",
+			"Bash(git status)",
+			"Bash(git diff:*)",
+			"Bash(git log:*)"
+		],
+		"deny": [
+			"Bash(rm -rf:*)",
+			"Bash(git push:*)",
+			"Bash(npm publish:*)",
+			"Read(./.env)",
+			"Read(./.env.*)"
+		]
+	}
 }

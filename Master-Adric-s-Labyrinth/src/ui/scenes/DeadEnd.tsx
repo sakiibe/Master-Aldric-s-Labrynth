@@ -5,35 +5,36 @@ import { RoomBackdrop } from '../art/RoomBackdrop';
 import { getDeadEndArt } from '../art/registry';
 
 interface DeadEndProps {
-  workflow: BuiltWorkflow;
-  deadEnd: DeadEndState;
-  onBacktrack: () => void;
+	workflow: BuiltWorkflow;
+	deadEnd: DeadEndState;
+	onBacktrack: () => void;
 }
 
 export function DeadEnd({ workflow, deadEnd, onBacktrack }: DeadEndProps) {
-  const theme = useTheme();
-  const scene = theme.deadEndScenes[deadEnd.sceneIndex % theme.deadEndScenes.length];
-  const Art = getDeadEndArt(scene.art);
-  const citation = deadEnd.aidRef
-    ? `— ${workflow.source}, ${deadEnd.aidRef}`
-    : `— ${workflow.source}`;
+	const theme = useTheme();
+	const scene =
+		theme.deadEndScenes[deadEnd.sceneIndex % theme.deadEndScenes.length];
+	const Art = getDeadEndArt(scene.art);
+	const citation = deadEnd.aidRef
+		? `— ${workflow.source}, ${deadEnd.aidRef}`
+		: `— ${workflow.source}`;
 
-  return (
-    <div className="dead-end-scene">
-      <div className="scene-art scene-art--backdrop">
-        <RoomBackdrop />
-      </div>
-      <div className="scene-art scene-art--character">
-        <Art />
-      </div>
+	return (
+		<div className="dead-end-scene">
+			<div className="scene-art scene-art--backdrop">
+				<RoomBackdrop />
+			</div>
+			<div className="scene-art scene-art--character">
+				<Art />
+			</div>
 
-      <DialogueBox speaker={theme.labels.mentor} line={scene.line}>
-        <p className="dialogue-rule">{deadEnd.rule}</p>
-        <p className="dialogue-citation">{citation}</p>
-        <button type="button" className="dialogue-action" onClick={onBacktrack}>
-          Back to the door, apprentice ⏎
-        </button>
-      </DialogueBox>
-    </div>
-  );
+			<DialogueBox speaker={theme.labels.mentor} line={scene.line}>
+				<p className="dialogue-rule">{deadEnd.rule}</p>
+				<p className="dialogue-citation">{citation}</p>
+				<button type="button" className="dialogue-action" onClick={onBacktrack}>
+					Back to the door, apprentice ⏎
+				</button>
+			</DialogueBox>
+		</div>
+	);
 }

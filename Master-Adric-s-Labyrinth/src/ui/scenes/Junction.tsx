@@ -6,12 +6,12 @@ import { PathTrail } from '../components/PathTrail';
 import { getJunctionArt } from '../art/registry';
 
 interface JunctionProps {
-  step: BuiltStep;
-  hintedSteps: StepId[];
-  hintsRemaining: number;
-  taken: TakenStep[];
-  onChoose: (doorId: DoorId) => void;
-  onHint: () => void;
+	step: BuiltStep;
+	hintedSteps: StepId[];
+	hintsRemaining: number;
+	taken: TakenStep[];
+	onChoose: (doorId: DoorId) => void;
+	onHint: () => void;
 }
 
 /**
@@ -24,45 +24,49 @@ interface JunctionProps {
  * the new room.
  */
 export function Junction({
-  step,
-  hintedSteps,
-  hintsRemaining,
-  taken,
-  onChoose,
-  onHint,
+	step,
+	hintedSteps,
+	hintsRemaining,
+	taken,
+	onChoose,
+	onHint,
 }: JunctionProps) {
-  const theme = useTheme();
-  const hinted = hintedSteps.includes(step.id);
-  const Art = getJunctionArt(theme.assets.junctionArt);
+	const theme = useTheme();
+	const hinted = hintedSteps.includes(step.id);
+	const Art = getJunctionArt(theme.assets.junctionArt);
 
-  return (
-    <div className="junction-scene">
-      <div className="scene-art scene-art--backdrop">
-        <Art />
-      </div>
+	return (
+		<div className="junction-scene">
+			<div className="scene-art scene-art--backdrop">
+				<Art />
+			</div>
 
-      <div className="junction-header">
-        <div className="junction-location">{step.location}</div>
-        <h1 className="junction-prompt">{step.prompt}</h1>
-      </div>
+			<div className="junction-header">
+				<div className="junction-location">{step.location}</div>
+				<h1 className="junction-prompt">{step.prompt}</h1>
+			</div>
 
-      <div className="doors">
-        {step.doors.map((door, i) => (
-          <Door
-            key={door.id}
-            door={door}
-            glowing={hinted && door.kind === 'correct'}
-            onSelect={onChoose}
-            sigil={(i % 3) as 0 | 1 | 2}
-          />
-        ))}
-      </div>
+			<div className="doors">
+				{step.doors.map((door, i) => (
+					<Door
+						key={door.id}
+						door={door}
+						glowing={hinted && door.kind === 'correct'}
+						onSelect={onChoose}
+						sigil={(i % 3) as 0 | 1 | 2}
+					/>
+				))}
+			</div>
 
-      <div className="hint-bar">
-        <HintButton hintsRemaining={hintsRemaining} alreadyHinted={hinted} onUse={onHint} />
-      </div>
+			<div className="hint-bar">
+				<HintButton
+					hintsRemaining={hintsRemaining}
+					alreadyHinted={hinted}
+					onUse={onHint}
+				/>
+			</div>
 
-      <PathTrail taken={taken} />
-    </div>
-  );
+			<PathTrail taken={taken} />
+		</div>
+	);
 }
