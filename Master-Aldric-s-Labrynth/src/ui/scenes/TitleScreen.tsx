@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSound } from '../../sound/useSound';
+import { SettingsPanel } from '../components/SettingsPanel';
 
 /**
  * Title screen / landing page — the game's entry point.
@@ -15,8 +16,9 @@ import { useSound } from '../../sound/useSound';
  * Full-viewport key art of Aldric in his maze with an atmosphere pass
  * (lightning, volumetric potion smoke, floor mist, embers) over the top,
  * and a bottom-anchored menu: two primary modes plus How to Play / Settings.
- * Every ambient animation is gated behind `prefers-reduced-motion:
- * no-preference`; under `reduce` the layers hold at a static mid-state.
+ * Ambient animations run unconditionally; the Settings "Reduce motion" toggle
+ * drives a top-level switch (data-reduce-motion on <html>, ui/styles/game.css)
+ * that halts every animation and transition on the page at once.
  *
  * The `art/title-scene.png` percentages for the smoke/glow anchors are
  * calibrated to the current crop (`background-position: center 36%`) — if
@@ -740,15 +742,7 @@ export function TitleScreen({ onStoryMode, onFreePlay }: TitleScreenProps) {
 						) : (
 							<>
 								<h2 style={overlayTitleStyle}>Settings</h2>
-								<p style={overlayBodyStyle}>
-									Settings aren't wired up yet — audio, motion, and text-size
-									controls will live here.
-								</p>
-								<p style={overlayBodyStyle}>
-									The screen already honours your system <em>reduce motion</em>{' '}
-									preference: with it on, the ambient lightning, smoke, and
-									embers hold still.
-								</p>
+								<SettingsPanel />
 							</>
 						)}
 					</div>
@@ -1015,19 +1009,20 @@ const CSS = `
 
 	.ts-uiRise { animation: ts-uiRise 1.2s cubic-bezier(0.16,1,0.3,1) both; }
 
-	@media (prefers-reduced-motion: no-preference) {
-		.ts-breathe { animation: ts-breathe 9s ease-in-out infinite; }
-		.ts-swayA { animation: ts-swayA 14s ease-in-out infinite; }
-		.ts-mistDrift { animation: ts-mistDrift 26s ease-in-out infinite; }
-		.ts-flashA { animation: ts-flashA 13s linear infinite; }
-		.ts-flashB { animation: ts-flashB 19s linear infinite; }
-		.ts-boltA { animation: ts-boltA 13s linear infinite; }
-		.ts-smokeRise { animation: ts-smokeRise 7s ease-out infinite; }
-		.ts-smokeRise2 { animation: ts-smokeRise2 9.5s ease-out infinite; }
-		.ts-emberFloat { animation: ts-emberFloat 14s linear infinite; }
-		.ts-potionPulse { animation: ts-potionPulse 3.6s ease-in-out infinite; }
-		.ts-runeSpin { animation: ts-runeSpin 22s linear infinite; }
-	}
+	/* Ambient animations run unconditionally; the top-level reduce-motion
+	   switch (data-reduce-motion on <html>, ui/styles/game.css) halts them
+	   when the Settings toggle is on. */
+	.ts-breathe { animation: ts-breathe 9s ease-in-out infinite; }
+	.ts-swayA { animation: ts-swayA 14s ease-in-out infinite; }
+	.ts-mistDrift { animation: ts-mistDrift 26s ease-in-out infinite; }
+	.ts-flashA { animation: ts-flashA 13s linear infinite; }
+	.ts-flashB { animation: ts-flashB 19s linear infinite; }
+	.ts-boltA { animation: ts-boltA 13s linear infinite; }
+	.ts-smokeRise { animation: ts-smokeRise 7s ease-out infinite; }
+	.ts-smokeRise2 { animation: ts-smokeRise2 9.5s ease-out infinite; }
+	.ts-emberFloat { animation: ts-emberFloat 14s linear infinite; }
+	.ts-potionPulse { animation: ts-potionPulse 3.6s ease-in-out infinite; }
+	.ts-runeSpin { animation: ts-runeSpin 22s linear infinite; }
 
 	@media (max-width: 620px) {
 		.ts-subtitle { display: none !important; }

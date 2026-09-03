@@ -1,8 +1,10 @@
 import { useSound } from '../../sound/useSound';
 
 /**
- * A fixed-corner speaker toggle. Click mutes/unmutes all sound; the choice is
- * persisted by the sound layer. Icon is an inline SVG so it needs no asset.
+ * A fixed-corner speaker toggle for the music bed. Click mutes/unmutes the
+ * music (sound effects are unaffected); the choice is the music volume at zero,
+ * persisted by the sound layer, and stays in sync with the Settings music
+ * slider. Icon is an inline SVG so it needs no asset.
  */
 export function SoundControl() {
 	const { muted, toggleMuted } = useSound();
@@ -13,8 +15,8 @@ export function SoundControl() {
 			className="sound-control"
 			onClick={toggleMuted}
 			aria-pressed={muted}
-			aria-label={muted ? 'Unmute sound' : 'Mute sound'}
-			title={muted ? 'Unmute' : 'Mute'}
+			aria-label={muted ? 'Unmute music' : 'Mute music'}
+			title={muted ? 'Unmute music' : 'Mute music'}
 		>
 			<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
 				<path

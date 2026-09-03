@@ -14,6 +14,20 @@
 	font-family: var(--font-body);
 }
 
+/* Reduce-motion kill switch. The MotionProvider (state/MotionContext.tsx)
+   sets data-reduce-motion on <html> from the Settings toggle; when on, every
+   animation and transition on the page is stopped at once. Scenes animate
+   freely and rely on this single top-level rule rather than each gating its
+   own ambient effects. */
+:root[data-reduce-motion='true'] *,
+:root[data-reduce-motion='true'] *::before,
+:root[data-reduce-motion='true'] *::after {
+	animation-duration: 0.001ms !important;
+	animation-iteration-count: 1 !important;
+	transition-duration: 0.001ms !important;
+	scroll-behavior: auto !important;
+}
+
 /* A layer of art (RoomBackdrop, an Aldric scene) filling its positioned
    parent. Multiple of these stack via DOM order within the parent. */
 .scene-art {

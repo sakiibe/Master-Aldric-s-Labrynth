@@ -61,26 +61,38 @@ const MUSIC: Record<MusicKey, Clip> = {
  * swallowed so a silent clip never breaks the game.
  */
 export class SoundPlayer {
-	private muted: boolean;
+	// Master gains, 0..1, multiplied onto each clip's own gain. Music at zero is
+	// the "muted" state; SFX is independent and never touched by the mute button.
+	private musicVolume: number;
+	private sfxVolume: number;
 	// The single looping music element, and the key it is playing.
 	private musicEl: HTMLAudioElement | null = null;
 	private musicKey: MusicKey | null = null;
 
-	constructor(muted: boolean) {
-		this.muted = muted;
+	constructor(musicVolume: number, sfxVolume: number) {
+		this.musicVolume = musicVolume;
+		this.sfxVolume = sfxVolume;
 	}
 
-	setMuted(muted: boolean): void {
-		this.muted = muted;
-		if (this.musicEl) this.musicEl.muted = muted;
+	/** Sets the master music gain and reapplies it to any playing bed. */
+	setMusicVolume(volume: number): void {
+		this.musicVolume = volume;
+		if (this.musicEl && this.musicKey !== null) {
+			this.musicEl.volume = MUSIC[this.musicKey].volume * volume;
+		}
+	}
+
+	/** Sets the master SFX gain. Applied to clips fired after this call. */
+	setSfxVolume(volume: number): void {
+		this.sfxVolume = volume;
 	}
 
 	/** Fires a one-shot clip. A fresh element each call lets SFX overlap. */
 	playSfx(key: SfxKey): void {
-		if (this.muted) return;
+		if (this.sfxVolume === 0) return;
 		const clip = SFX[key];
 		const el = new Audio(clip.src);
-		el.volume = clip.volume;
+		el.volume = clip.volume * this.sfxVolume;
 		void el.play().catch(() => {});
 	}
 
@@ -96,7 +108,6 @@ export class SoundPlayer {
 			this.musicEl = new Audio();
 			this.musicEl.loop = true;
 		}
-		this.musicEl.muted = this.muted;
 
 		if (key === null) {
 			this.musicEl.pause();
@@ -104,7 +115,7 @@ export class SoundPlayer {
 		}
 		const clip = MUSIC[key];
 		this.musicEl.src = clip.src;
-		this.musicEl.volume = clip.volume;
+		this.musicEl.volume = clip.volume * this.musicVolume;
 		void this.musicEl.play().catch(() => {});
 	}
 
@@ -121,8 +132,16 @@ export class SoundPlayer {
 export interface SoundApi {
 	playSfx: (key: SfxKey) => void;
 	playMusic: (key: MusicKey | null) => void;
+	/** True when music is silenced (music volume is zero). Music-only. */
 	muted: boolean;
+	/** Toggles music between zero and the last non-zero level. */
 	toggleMuted: () => void;
+	/** Master music gain, 0..1. Zero is the muted state. */
+	musicVolume: number;
+	setMusicVolume: (volume: number) => void;
+	/** Master SFX gain, 0..1. */
+	sfxVolume: number;
+	setSfxVolume: (volume: number) => void;
 }
 
 export const SoundContext = createContext<SoundApi | null>(null);
@@ -136,6 +155,10 @@ export function useSound(): SoundApi {
 			playMusic: () => {},
 			muted: false,
 			toggleMuted: () => {},
+			musicVolume: 1,
+			setMusicVolume: () => {},
+			sfxVolume: 1,
+			setSfxVolume: () => {},
 		}
 	);
 }

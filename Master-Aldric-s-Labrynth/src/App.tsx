@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { buildWorkflow } from './game/buildWorkflow';
 import { workflows as workflowDefs } from './game/data';
 import type { BuiltWorkflow, RunState, WorkflowId } from './game/types';
+import { MotionProvider } from './state/MotionContext';
 import { ThemeProvider } from './state/ThemeContext';
 import { useTheme } from './state/useTheme';
 import { getCompleted } from './state/storage';
@@ -202,10 +203,12 @@ function Game() {
 function App() {
 	return (
 		<ThemeProvider>
-			<SoundProvider>
-				<SoundControl />
-				<Game />
-			</SoundProvider>
+			<MotionProvider>
+				<SoundProvider>
+					<SoundControl />
+					<Game />
+				</SoundProvider>
+			</MotionProvider>
 		</ThemeProvider>
 	);
 }

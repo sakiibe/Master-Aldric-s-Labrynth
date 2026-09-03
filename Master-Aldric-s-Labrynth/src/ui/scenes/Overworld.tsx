@@ -404,11 +404,11 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
         .ow-node[data-clickable="true"] { cursor: pointer; }
         .ow-node[data-clickable="true"]:hover .ow-node-halo { opacity: .95; }
         .ow-node:focus-visible { outline: 2px solid #caa14a; outline-offset: 4px; border-radius: 50%; }
-        @media (prefers-reduced-motion: no-preference) {
-          .ow-twinkle { animation: ow-tw var(--dur) ease-in-out var(--delay) infinite; }
-          .ow-smoke { animation: ow-drift 7s ease-out infinite; }
-          .ow-pulse-ring { animation: ow-pulse 2.6s ease-in-out infinite; }
-        }
+        /* Runs unconditionally; the top-level reduce-motion switch
+           (data-reduce-motion on <html>, ui/styles/game.css) halts these. */
+        .ow-twinkle { animation: ow-tw var(--dur) ease-in-out var(--delay) infinite; }
+        .ow-smoke { animation: ow-drift 7s ease-out infinite; }
+        .ow-pulse-ring { animation: ow-pulse 2.6s ease-in-out infinite; }
       `}</style>
 			<div
 				style={{
