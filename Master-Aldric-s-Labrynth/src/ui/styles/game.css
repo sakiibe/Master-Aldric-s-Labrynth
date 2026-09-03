@@ -47,6 +47,32 @@
 	z-index: 10;
 }
 
+/* Sound toggle — fixed top-left, mirroring the patience meter's placement. */
+.sound-control {
+	position: fixed;
+	top: 24px;
+	left: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	background: var(--color-surface);
+	border: 1.5px solid var(--color-accent);
+	border-radius: 10px;
+	color: var(--color-ink-muted);
+	cursor: pointer;
+	z-index: 10;
+}
+
+.sound-control:hover {
+	color: var(--color-ink);
+}
+
+.sound-control[aria-pressed='true'] {
+	color: var(--color-locked);
+}
+
 .patience-meter__pips {
 	display: flex;
 	gap: 6px;
