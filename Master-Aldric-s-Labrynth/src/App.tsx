@@ -10,6 +10,7 @@ import { PatienceMeter } from './ui/components/PatienceMeter';
 import { DeadEnd } from './ui/scenes/DeadEnd';
 import { Junction } from './ui/scenes/Junction';
 import { Overworld } from './ui/scenes/Overworld';
+import { TitleScreen } from './ui/scenes/TitleScreen';
 import './ui/styles/game.css';
 
 const builtWorkflows: BuiltWorkflow[] = workflowDefs.map(buildWorkflow);
@@ -17,7 +18,10 @@ const workflowsById: Record<WorkflowId, BuiltWorkflow> = Object.fromEntries(
 	builtWorkflows.map((w) => [w.id, w]),
 );
 
-type Scene = { name: 'overworld' } | { name: 'workflow'; id: WorkflowId };
+type Scene =
+	| { name: 'title' }
+	| { name: 'overworld' }
+	| { name: 'workflow'; id: WorkflowId };
 
 interface WorkflowScreenProps {
 	workflow: BuiltWorkflow;
@@ -87,7 +91,7 @@ function WorkflowScreen({
 }
 
 function Game() {
-	const [scene, setScene] = useState<Scene>({ name: 'overworld' });
+	const [scene, setScene] = useState<Scene>({ name: 'title' });
 	const [completed, setCompleted] = useState<WorkflowId[]>(() =>
 		getCompleted(),
 	);
@@ -96,6 +100,17 @@ function Game() {
 		setCompleted(getCompleted());
 		setScene({ name: 'overworld' });
 	}, []);
+
+	if (scene.name === 'title') {
+		// Story Mode and Free Play both open the one Overworld map today —
+		// the engine has no separate free-play flow yet.
+		return (
+			<TitleScreen
+				onStoryMode={() => setScene({ name: 'overworld' })}
+				onFreePlay={() => setScene({ name: 'overworld' })}
+			/>
+		);
+	}
 
 	if (scene.name === 'overworld') {
 		return (
