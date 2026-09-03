@@ -71,6 +71,7 @@ function WorkflowScreen({
 	onReturnToOverworld,
 }: WorkflowScreenProps) {
 	const theme = useTheme();
+	const { playSfx } = useSound();
 	const { run, choose, backtrack, useHint, restart } = useRun(workflow);
 	useRunSounds(run);
 
@@ -107,7 +108,13 @@ function WorkflowScreen({
 					</h1>
 					<p className="dialogue-rule">{run.deadEnd.rule}</p>
 					<p>{theme.outOfPatienceLine}</p>
-					<button type="button" onClick={restart}>
+					<button
+						type="button"
+						onClick={() => {
+							playSfx('click');
+							restart();
+						}}
+					>
 						Begin again
 					</button>
 					<button type="button" onClick={onReturnToOverworld}>
@@ -134,17 +141,34 @@ function Game() {
 	const [completed, setCompleted] = useState<WorkflowId[]>(() =>
 		getCompleted(),
 	);
-	const { playMusic } = useSound();
+	const { playMusic, playSfx } = useSound();
 
-	// Swap the looping music bed to match the current scene.
+	// Swap the looping music bed to match the current scene: the mozart menu
+	// track on the title screen, the lab bed on the overworld, and the junction
+	// bed inside a workflow.
 	useEffect(() => {
-		playMusic(scene.name === 'overworld' ? 'overworld' : 'junction');
+		const bed =
+			scene.name === 'title'
+				? 'menu'
+				: scene.name === 'overworld'
+					? 'overworld'
+					: 'junction';
+		playMusic(bed);
 	}, [scene.name, playMusic]);
 
 	const returnToOverworld = useCallback(() => {
+		playSfx('click');
 		setCompleted(getCompleted());
 		setScene({ name: 'overworld' });
-	}, []);
+	}, [playSfx]);
+
+	const selectWorkflow = useCallback(
+		(id: WorkflowId) => {
+			playSfx('click');
+			setScene({ name: 'workflow', id });
+		},
+		[playSfx],
+	);
 
 	if (scene.name === 'title') {
 		// Story Mode and Free Play both open the one Overworld map today —
@@ -162,7 +186,7 @@ function Game() {
 			<Overworld
 				workflows={builtWorkflows}
 				completed={completed}
-				onSelect={(id) => setScene({ name: 'workflow', id })}
+				onSelect={selectWorkflow}
 			/>
 		);
 	}

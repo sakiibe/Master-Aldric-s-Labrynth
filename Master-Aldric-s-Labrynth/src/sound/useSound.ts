@@ -24,9 +24,10 @@ export type SfxKey =
 	| 'hint'
 	| 'backtrack'
 	| 'complete'
-	| 'failed';
+	| 'failed'
+	| 'click';
 
-export type MusicKey = 'overworld' | 'junction';
+export type MusicKey = 'menu' | 'overworld' | 'junction';
 
 interface Clip {
 	src: string;
@@ -36,18 +37,20 @@ interface Clip {
 
 /** One-shot event sounds. */
 const SFX: Record<SfxKey, Clip> = {
-	correct: { src: '/audio/correct.wav', volume: 0.9 },
-	wrong: { src: '/audio/wrong.wav', volume: 0.9 },
-	hint: { src: '/audio/hint.wav', volume: 0.8 },
-	backtrack: { src: '/audio/backtrack.wav', volume: 0.7 },
-	complete: { src: '/audio/complete.wav', volume: 1.0 },
-	failed: { src: '/audio/failed.wav', volume: 0.95 },
+	correct: { src: '/audio/sfx/correct.wav', volume: 0.9 },
+	wrong: { src: '/audio/sfx/wrong.wav', volume: 0.9 },
+	hint: { src: '/audio/sfx/hint.wav', volume: 0.8 },
+	backtrack: { src: '/audio/sfx/backtrack.wav', volume: 0.7 },
+	complete: { src: '/audio/sfx/complete.wav', volume: 1.0 },
+	failed: { src: '/audio/sfx/failed.wav', volume: 0.95 },
+	click: { src: '/audio/sfx/click.wav', volume: 0.6 },
 };
 
 /** Looping ambient beds, one per scene. */
 const MUSIC: Record<MusicKey, Clip> = {
-	overworld: { src: '/audio/music-overworld.mp3', volume: 0.5 },
-	junction: { src: '/audio/music-junction.mp3', volume: 0.5 },
+	menu: { src: '/audio/music/music-menu.mp3', volume: 0.5 },
+	overworld: { src: '/audio/music/music-overworld.mp3', volume: 0.5 },
+	junction: { src: '/audio/music/music-junction.mp3', volume: 0.5 },
 };
 
 // ── Player ───────────────────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSound } from '../../sound/useSound';
 
 /**
  * Title screen / landing page — the game's entry point.
@@ -266,6 +267,7 @@ type Overlay = 'howto' | 'settings' | null;
 export function TitleScreen({ onStoryMode, onFreePlay }: TitleScreenProps) {
 	const [overlay, setOverlay] = useState<Overlay>(null);
 	const closeRef = useRef<HTMLButtonElement>(null);
+	const { playSfx } = useSound();
 
 	// Return focus and allow Escape to dismiss whichever overlay is open.
 	useEffect(() => {
@@ -536,13 +538,19 @@ export function TitleScreen({ onStoryMode, onFreePlay }: TitleScreenProps) {
 						palette={STORY}
 						label="STORY MODE"
 						subtitle="Descend through Aldric's trials"
-						onClick={onStoryMode}
+						onClick={() => {
+							playSfx('click');
+							onStoryMode();
+						}}
 					/>
 					<PrimaryButton
 						palette={FREE}
 						label="FREE PLAY"
 						subtitle="Wander any maze, no consequence"
-						onClick={onFreePlay}
+						onClick={() => {
+							playSfx('click');
+							onFreePlay();
+						}}
 					/>
 				</div>
 
@@ -584,7 +592,10 @@ export function TitleScreen({ onStoryMode, onFreePlay }: TitleScreenProps) {
 				<div style={{ display: 'flex', alignItems: 'flex-start', gap: 68 }}>
 					<SecondaryButton
 						label="HOW TO PLAY"
-						onClick={() => setOverlay('howto')}
+						onClick={() => {
+							playSfx('click');
+							setOverlay('howto');
+						}}
 					>
 						<div
 							style={{
@@ -610,7 +621,10 @@ export function TitleScreen({ onStoryMode, onFreePlay }: TitleScreenProps) {
 
 					<SecondaryButton
 						label="SETTINGS"
-						onClick={() => setOverlay('settings')}
+						onClick={() => {
+							playSfx('click');
+							setOverlay('settings');
+						}}
 					>
 						<div
 							className="ts-runeSpin"
@@ -695,7 +709,10 @@ export function TitleScreen({ onStoryMode, onFreePlay }: TitleScreenProps) {
 						<button
 							ref={closeRef}
 							type="button"
-							onClick={() => setOverlay(null)}
+							onClick={() => {
+								playSfx('click');
+								setOverlay(null);
+							}}
 							style={overlayCloseStyle}
 							aria-label="Close"
 						>
