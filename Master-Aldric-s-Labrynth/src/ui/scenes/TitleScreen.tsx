@@ -5,7 +5,7 @@ import { useSound } from '../../sound/useSound';
  * Title screen / landing page — the game's entry point.
  *
  * Recreated from the design handoff
- * (`Game landing page design/design_handoff_title_screen/`), which is a
+ * (`design/title-screen/`), which is a
  * high-fidelity HTML prototype built on a design-prototyping runtime, not
  * portable markup. Layer order, colors, blend modes, and animation timings
  * are the handoff's, verbatim; the hand-drawn CSS button/icon styling is

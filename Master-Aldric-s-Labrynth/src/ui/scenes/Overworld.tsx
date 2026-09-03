@@ -9,8 +9,7 @@ import { useTheme } from '../../state/useTheme';
  * chain, so `done` (how many of a district's workflows are in `completed`)
  * is all the state this scene needs — everything else derives from it.
  *
- * Ported pixel-for-pixel from the design handoff
- * (`UI mockups for canvas project/design_handoff_overworld/`), substituting
+ * Ported pixel-for-pixel from the overworld design handoff, substituting
  * real workflow data for the mock's hardcoded title lists. Colors not in
  * `theme.ts` (window glow, lamp warmth, ground/sky gradients, plaque tints)
  * are scene-only shades — the handoff calls these out explicitly as
