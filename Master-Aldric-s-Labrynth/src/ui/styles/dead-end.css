@@ -1,0 +1,80 @@
+/* ---------- Dead end (Hades-style: art fills the frame, dialogue box overlays the bottom) ---------- */
+
+.dead-end-scene {
+	position: relative;
+	z-index: 0;
+	max-width: 900px;
+	aspect-ratio: 690 / 440;
+	margin: 24px auto;
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.dead-end-scene .scene-art--backdrop {
+	z-index: 0;
+}
+
+.dead-end-scene .scene-art--character {
+	z-index: 1;
+}
+
+.dialogue-box {
+	position: absolute;
+	left: 20px;
+	right: 20px;
+	bottom: 20px;
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+	border: 2px solid var(--color-accent);
+	border-radius: 14px;
+	padding: 18px 20px;
+	backdrop-filter: blur(2px);
+}
+
+.dialogue-speaker {
+	font-family: var(--font-display);
+	font-weight: 700;
+	color: var(--color-accent);
+	font-size: 0.95rem;
+}
+
+.dialogue-line {
+	margin: 0;
+	font-family: var(--font-body);
+	font-size: 0.95rem;
+	min-height: 1.4em;
+}
+
+.dialogue-rule {
+	margin: 0;
+	font-family: var(--font-body);
+	font-weight: 600;
+	color: var(--color-accent);
+	font-size: 0.9rem;
+}
+
+.dialogue-citation {
+	margin: 0;
+	font-family: var(--font-ui);
+	font-style: italic;
+	font-size: 0.75rem;
+	color: var(--color-ink-muted);
+}
+
+.dialogue-action {
+	align-self: flex-end;
+	background: none;
+	border: none;
+	color: var(--color-ink-muted);
+	font-family: var(--font-ui);
+	font-size: 0.85rem;
+	cursor: pointer;
+}
+
+.dialogue-action:hover {
+	color: var(--color-ink);
+}

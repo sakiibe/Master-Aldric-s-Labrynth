@@ -1,0 +1,43 @@
+/* Colors and fonts come from theme.ts via CSS custom properties set on
+   .theme-root (see state/ThemeContext.tsx). No color literal below this
+   line — literals belong only in ui/art/, on character/prop details that
+   aren't structural theme colors. */
+
+.theme-root {
+	/* flow-root (not just min-height) so a scene's own top margin — e.g.
+     .dead-end-scene's — can't collapse through this box and expose raw
+     viewport above it. */
+	display: flow-root;
+	min-height: 100vh;
+	background: var(--color-bg);
+	color: var(--color-ink);
+	font-family: var(--font-body);
+}
+
+/* Reduce-motion kill switch. The MotionProvider (state/MotionContext.tsx)
+   sets data-reduce-motion on <html> from the Settings toggle; when on, every
+   animation and transition on the page is stopped at once. Scenes animate
+   freely and rely on this single top-level rule rather than each gating its
+   own ambient effects. */
+:root[data-reduce-motion='true'] *,
+:root[data-reduce-motion='true'] *::before,
+:root[data-reduce-motion='true'] *::after {
+	animation-duration: 0.001ms !important;
+	animation-iteration-count: 1 !important;
+	transition-duration: 0.001ms !important;
+	scroll-behavior: auto !important;
+}
+
+/* A layer of art (RoomBackdrop, an Aldric scene) filling its positioned
+   parent. Multiple of these stack via DOM order within the parent. */
+.scene-art {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+}
+
+.scene-art svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
