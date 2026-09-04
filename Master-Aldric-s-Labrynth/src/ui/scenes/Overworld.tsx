@@ -4,16 +4,19 @@ import { useTheme } from '../../state/useTheme';
 
 /**
  * The Overworld — one continuous night map. Four districts (job aids), each
- * a house with a curved trail of waystones (one per workflow). Districts are
+ * a house with a coiling trail of waystones (one per workflow) that runs
+ * from the house door into Aldric's Tower at the centre. Districts are
  * always open; a trail gates sequentially via each workflow's `requires`
  * chain, so `done` (how many of a district's workflows are in `completed`)
  * is all the state this scene needs — everything else derives from it.
  *
- * Ported pixel-for-pixel from the overworld design handoff, substituting
- * real workflow data for the mock's hardcoded title lists. Colors not in
- * `theme.ts` (window glow, lamp warmth, ground/sky gradients, plaque tints)
- * are scene-only shades — the handoff calls these out explicitly as
- * intentionally local, not tokens to promote.
+ * Ported from `design_handoff_overworld/Overworld.dc.html`, substituting
+ * real workflow data for the mock's hardcoded title lists. Every trail is
+ * a generated quadratic Bézier with a sine switchback offset; waystones
+ * ride it at equal ARC LENGTH (equal-t spacing bunches stones wherever the
+ * coil turns). Colours not in `theme.ts` — window/lamp warmth, ground and
+ * sky gradients, plaque tints, the darker scene shades — are called out in
+ * the handoff as intentionally scene-only, not tokens to promote.
  */
 
 interface OverworldProps {
@@ -25,9 +28,10 @@ interface OverworldProps {
 const STAGE_W = 1920;
 const STAGE_H = 1080;
 const STAR_COUNT = 170;
+const STAR_SEED = 20260901;
 
 /* ------------------------------------------------------------------ */
-/* Geometry — deterministic RNG, Catmull-Rom spline, serpentine layout */
+/* Geometry — deterministic RNG, Catmull-Rom spline, switchback layout */
 /* ------------------------------------------------------------------ */
 
 function rng(seed: number): () => number {
@@ -66,72 +70,71 @@ function crPath(pts: Pt[]): string {
 
 interface DistrictLayout {
 	key: JobAidId;
+	/** House door threshold — the trail's start. */
 	door: Pt;
-	x0: number;
-	y0: number;
-	w: number;
-	h: number;
-	rows: number;
+	/** Quadratic Bézier control point. */
+	c: Pt;
+	/** Terminal point on the tower plinth — the trail's end. */
+	end: Pt;
+	/** Sample window along the base curve. */
+	t0: number;
+	t1: number;
+	/** Perpendicular switchback amplitude, and lobe count. */
+	amp: number;
+	waves: number;
 	plaque: { x: number; y: number; side: 'left' | 'right' };
-	seed: number;
 }
 
-/** Trail geometry, in the 1920×1080 design space. Negative `w` means the
- * serpentine runs right-to-left (the two right-hand districts walk their
- * trails inward). Coordinates are the design handoff's, verbatim. */
+/** Trail geometry, in the 1920×1080 design space. Verbatim from the
+ * handoff — re-tuning any curve means re-measuring the minimum
+ * centre-to-centre stone gap and keeping it ≥ 45px (Verification's
+ * 20-stone trail is the tightest, at 46.5px with these values). */
 const LAYOUT: DistrictLayout[] = [
 	{
 		key: 'bpmh',
 		door: { x: 300, y: 340 },
-		x0: 430,
-		y0: 392,
-		w: 170,
-		h: 0,
-		rows: 1,
-		plaque: { x: 470, y: 288, side: 'right' },
-		seed: 1000,
+		c: { x: 600, y: 300 },
+		end: { x: 874, y: 552 },
+		t0: 0.28,
+		t1: 0.85,
+		amp: 30,
+		waves: 1,
+		plaque: { x: 520, y: 205, side: 'right' },
 	},
 	{
 		key: 'oncology',
 		door: { x: 1660, y: 340 },
-		x0: 1618,
-		y0: 404,
-		w: -410,
-		h: 150,
-		rows: 3,
-		plaque: { x: 1136, y: 626, side: 'right' },
-		seed: 1077,
+		c: { x: 1400, y: 318 },
+		end: { x: 1046, y: 552 },
+		t0: 0.09,
+		t1: 0.93,
+		amp: 48,
+		waves: 3,
+		plaque: { x: 1400, y: 205, side: 'left' },
 	},
 	{
 		key: 'cpoe',
 		door: { x: 300, y: 802 },
-		x0: 404,
-		y0: 686,
-		w: 376,
-		h: 200,
-		rows: 3,
-		plaque: { x: 832, y: 972, side: 'left' },
-		seed: 1154,
+		c: { x: 560, y: 952 },
+		end: { x: 874, y: 608 },
+		t0: 0.09,
+		t1: 0.93,
+		amp: 54,
+		waves: 3,
+		plaque: { x: 430, y: 1010, side: 'right' },
 	},
 	{
 		key: 'verification',
 		door: { x: 1650, y: 822 },
-		x0: 1596,
-		y0: 642,
-		w: -436,
-		h: 264,
-		rows: 4,
-		plaque: { x: 1120, y: 976, side: 'right' },
-		seed: 1231,
+		c: { x: 1320, y: 1000 },
+		end: { x: 1046, y: 608 },
+		t0: 0.05,
+		t1: 0.96,
+		amp: 84,
+		waves: 5,
+		plaque: { x: 1490, y: 1030, side: 'left' },
 	},
 ];
-
-const READOUT_POS: Record<JobAidId, { left: number; top: number }> = {
-	bpmh: { left: 288, top: 276 },
-	cpoe: { left: 288, top: 738 },
-	oncology: { left: 1500, top: 276 },
-	verification: { left: 1500, top: 758 },
-};
 
 const PLAQUE_TINT: Record<JobAidId, string> = {
 	bpmh: '#7fb3d0',
@@ -140,54 +143,34 @@ const PLAQUE_TINT: Record<JobAidId, string> = {
 	oncology: '#d6ac74',
 };
 
-interface HouseCfg {
-	x: number;
-	y: number;
-	flip: boolean;
-	smokeDelay: string;
-	nameLines: string[];
-	nameY: number[];
-}
+/** House door threshold — the group origin each building is drawn around. */
+const HOUSE_ORIGIN: Record<JobAidId, Pt> = {
+	bpmh: { x: 250, y: 330 },
+	oncology: { x: 1690, y: 330 },
+	cpoe: { x: 250, y: 792 },
+	verification: { x: 1690, y: 812 },
+};
 
-const HOUSES: Record<JobAidId, HouseCfg> = {
-	bpmh: {
-		x: 250,
-		y: 330,
-		flip: false,
-		smokeDelay: '7s',
-		nameLines: ['BPMH &', 'MED REC'],
-		nameY: [-92, -77],
-	},
-	oncology: {
-		x: 1690,
-		y: 330,
-		flip: true,
-		smokeDelay: '8.5s',
-		nameLines: ['ONCOLOGY', 'ORDERS'],
-		nameY: [-92, -77],
-	},
-	cpoe: {
-		x: 250,
-		y: 792,
-		flip: false,
-		smokeDelay: '7.8s',
-		nameLines: ['CPOE'],
-		nameY: [-84],
-	},
-	verification: {
-		x: 1690,
-		y: 812,
-		flip: true,
-		smokeDelay: '9s',
-		nameLines: ['PHARMACIST', 'VERIFICATION'],
-		nameY: [-92, -77],
-	},
+/** Signpost label, split to fit the 136×82 board. */
+const HOUSE_NAME: Record<JobAidId, { lines: string[]; y: number[] }> = {
+	bpmh: { lines: ['BPMH &', 'MED REC'], y: [-78, -61] },
+	oncology: { lines: ['ONCOLOGY', 'ORDERS'], y: [-78, -61] },
+	cpoe: { lines: ['CPOE'], y: [-70] },
+	verification: { lines: ['PHARMACIST', 'VERIFICATION'], y: [-78, -61] },
+};
+
+const SMOKE_DUR: Record<JobAidId, string> = {
+	bpmh: '7s',
+	oncology: '8.5s',
+	cpoe: '7.8s',
+	verification: '9s',
 };
 
 type NodeState = 'sealed' | 'cleared' | 'current';
 
 interface NodeInfo {
 	key: string;
+	dk: JobAidId;
 	workflowId: WorkflowId;
 	title: string;
 	i: number;
@@ -208,6 +191,7 @@ interface PlaqueInfo {
 	key: JobAidId;
 	x: number;
 	y: number;
+	right: boolean;
 	leader: string;
 	frame: string;
 	boxLeft: number;
@@ -242,7 +226,7 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 	}
 
 	const stars = (() => {
-		const r = rng(20260901);
+		const r = rng(STAR_SEED);
 		const out: {
 			x: number;
 			y: number;
@@ -275,7 +259,7 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 	let totalDone = 0;
 	let totalAll = 0;
 
-	LAYOUT.forEach((L) => {
+	LAYOUT.forEach((L, li) => {
 		const list = byDistrict.get(L.key) ?? [];
 		const n = list.length;
 		const color = theme.jobAids[L.key].color;
@@ -286,24 +270,55 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 		totalDone += done;
 		totalAll += n;
 
-		const cols = Math.ceil(n / L.rows);
-		const jit = rng(L.seed);
-		const pts: Pt[] = [L.door];
-		for (let i = 0; i < n; i++) {
-			const row = Math.floor(i / cols);
-			let col = i % cols;
-			if (row % 2 === 1) col = cols - 1 - col;
-			const fx = cols > 1 ? col / (cols - 1) : 0.5;
-			const fy = L.rows > 1 ? row / (L.rows - 1) : 0;
-			const x = L.x0 + L.w * fx + (jit() - 0.5) * 22;
-			const y = L.y0 + L.h * fy + (jit() - 0.5) * 26;
-			pts.push({ x, y });
+		const jit = rng(1000 + li * 77);
+		const bez = (t: number, a: number, b: number, cc: number) => {
+			const u = 1 - t;
+			return u * u * a + 2 * u * t * b + t * t * cc;
+		};
+
+		// Sample the switchback curve densely, accumulate arc length, then
+		// drop waystones at equal arc length along it.
+		const SAMP = 800;
+		const raw: Pt[] = [];
+		const cum: number[] = [0];
+		for (let s = 0; s <= SAMP; s++) {
+			const tn = s / SAMP;
+			const t = L.t0 + (L.t1 - L.t0) * tn;
+			const bx = bez(t, L.door.x, L.c.x, L.end.x);
+			const by = bez(t, L.door.y, L.c.y, L.end.y);
+			const dx = 2 * (1 - t) * (L.c.x - L.door.x) + 2 * t * (L.end.x - L.c.x);
+			const dy = 2 * (1 - t) * (L.c.y - L.door.y) + 2 * t * (L.end.y - L.c.y);
+			const len = Math.hypot(dx, dy) || 1;
+			const a = L.amp * Math.sin(L.waves * Math.PI * tn);
+			raw.push({ x: bx - (dy / len) * a, y: by + (dx / len) * a });
+			if (s > 0)
+				cum.push(
+					cum[s - 1] +
+						Math.hypot(raw[s].x - raw[s - 1].x, raw[s].y - raw[s - 1].y),
+				);
 		}
+		const total = cum[SAMP];
+
+		const pts: Pt[] = [{ x: L.door.x, y: L.door.y }];
+		for (let i = 0; i < n; i++) {
+			const target = n > 1 ? (total * i) / (n - 1) : total / 2;
+			let s = 1;
+			while (s < SAMP && cum[s] < target) s++;
+			pts.push({
+				x: raw[s].x + (jit() - 0.5) * 10,
+				y: raw[s].y + (jit() - 0.5) * 10,
+			});
+		}
+		pts.push({ x: L.end.x, y: L.end.y });
+
+		// The terminal point joins the lit subpath only once the district
+		// is cleared — then the trail lights all the way into the tower.
+		const litTo = 1 + done + (done === n ? 1 : 0);
 		trails.push({
 			key: L.key,
 			color,
 			d: crPath(pts),
-			lit: crPath(pts.slice(0, done + 1)),
+			lit: crPath(pts.slice(0, litTo)),
 		});
 
 		for (let i = 0; i < n; i++) {
@@ -312,6 +327,7 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 				i < done ? 'cleared' : i === done ? 'current' : 'sealed';
 			nodes.push({
 				key: `${L.key}${i}`,
+				dk: L.key,
 				workflowId: list[i].id,
 				title: list[i].title,
 				i: i + 1,
@@ -354,6 +370,7 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 				key: L.key,
 				x: px,
 				y: py,
+				right,
 				leader: `M${(cur.x - px).toFixed(1)},${(cur.y - py).toFixed(1)} L${right ? 4 : -4},0`,
 				frame: right
 					? `M0,-32 L${w},-32 L${w},42 L0,42 Z`
@@ -368,18 +385,28 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 		}
 	});
 
-	// Ordinal digits hide where a plaque sits on top of them.
-	const plaqueRects = plaques.map((p) => {
-		const right = p.frame.startsWith('M0,');
-		return right
-			? { x1: p.x - 6, x2: p.x + 306, y1: p.y - 38, y2: p.y + 48 }
-			: { x1: p.x - 306, x2: p.x + 6, y1: p.y - 38, y2: p.y + 48 };
-	});
+	// A waystone ordinal falling inside its OWN district's plaque rect is
+	// hidden so digits don't bleed through. Scoped to the district — an
+	// earlier version tested every stone against every plaque and a
+	// cross-district overlap silently erased numbers instead of surfacing
+	// the layout conflict.
+	const plaqueRects = plaques.map((p) => ({
+		dk: p.key,
+		x1: p.right ? p.x - 6 : p.x - 306,
+		x2: p.right ? p.x + 306 : p.x + 6,
+		y1: p.y - 38,
+		y2: p.y + 48,
+	}));
 	const hidden = new Set(
 		nodes
 			.filter((n) =>
 				plaqueRects.some(
-					(r) => n.x > r.x1 && n.x < r.x2 && n.y > r.y1 && n.y < r.y2,
+					(r) =>
+						r.dk === n.dk &&
+						n.x > r.x1 &&
+						n.x < r.x2 &&
+						n.y > r.y1 &&
+						n.y < r.y2,
 				),
 			)
 			.map((n) => n.key),
@@ -401,9 +428,9 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
         @keyframes ow-tw { 0%, 100% { opacity: .25 } 50% { opacity: 1 } }
         @keyframes ow-drift { 0% { transform: translate(0,0) } 100% { transform: translate(28px,-34px) } }
         @keyframes ow-pulse { 0%, 100% { opacity: .28 } 50% { opacity: .62 } }
-        .ow-node[data-clickable="true"] { cursor: pointer; }
-        .ow-node[data-clickable="true"]:hover .ow-node-halo { opacity: .95; }
-        .ow-node:focus-visible { outline: 2px solid #caa14a; outline-offset: 4px; border-radius: 50%; }
+        .ow-hit { background: none; border: none; padding: 0; }
+        .ow-hit:not(:disabled) { cursor: pointer; }
+        .ow-hit:focus-visible { outline: 2px solid #caa14a; outline-offset: 4px; border-radius: 50%; }
         @media (prefers-reduced-motion: no-preference) {
           .ow-twinkle { animation: ow-tw var(--dur) ease-in-out var(--delay) infinite; }
           .ow-smoke { animation: ow-drift 7s ease-out infinite; }
@@ -500,12 +527,12 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 
 					{/* moon — the map's only cool light source */}
 					<g>
-						<circle cx="1568" cy="150" r="190" fill="url(#ow-moonhalo)" />
-						<circle cx="1568" cy="150" r="62" fill="#f4ead6" />
-						<circle cx="1568" cy="150" r="62" fill="#e6dcc6" opacity="0.5" />
-						<circle cx="1549" cy="134" r="11" fill="#d8ccb2" opacity="0.75" />
-						<circle cx="1585" cy="166" r="7.5" fill="#d8ccb2" opacity="0.6" />
-						<circle cx="1560" cy="176" r="5" fill="#d8ccb2" opacity="0.5" />
+						<circle cx="1568" cy="108" r="190" fill="url(#ow-moonhalo)" />
+						<circle cx="1568" cy="108" r="62" fill="#f4ead6" />
+						<circle cx="1568" cy="108" r="62" fill="#e6dcc6" opacity="0.5" />
+						<circle cx="1549" cy="92" r="11" fill="#d8ccb2" opacity="0.75" />
+						<circle cx="1585" cy="124" r="7.5" fill="#d8ccb2" opacity="0.6" />
+						<circle cx="1560" cy="134" r="5" fill="#d8ccb2" opacity="0.5" />
 					</g>
 
 					{/* hedge-maze horizon */}
@@ -537,24 +564,12 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 						opacity="0.7"
 					/>
 					<g opacity="0.5">
-						<ellipse
-							cx="960"
-							cy="1006"
-							rx="1100"
-							ry="86"
-							fill="url(#ow-mist)"
-						/>
+						<ellipse cx="960" cy="1006" rx="1100" ry="86" fill="url(#ow-mist)" />
 						<ellipse cx="420" cy="1042" rx="640" ry="60" fill="url(#ow-mist)" />
-						<ellipse
-							cx="1480"
-							cy="1050"
-							rx="600"
-							ry="54"
-							fill="url(#ow-mist)"
-						/>
+						<ellipse cx="1480" cy="1050" rx="600" ry="54" fill="url(#ow-mist)" />
 					</g>
 
-					{/* Aldric's tower — non-interactive anchor */}
+					{/* Aldric's tower — non-interactive hub; every trail terminates here */}
 					<g>
 						<circle
 							cx="960"
@@ -609,9 +624,10 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 							stroke="#4a3d63"
 							strokeWidth="1.5"
 						/>
+						{/* caption sits above the spire */}
 						<text
 							x="960"
-							y="622"
+							y="152"
 							textAnchor="middle"
 							fontFamily="Cinzel, serif"
 							fontSize="21"
@@ -622,7 +638,7 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 						</text>
 						<text
 							x="960"
-							y="648"
+							y="178"
 							textAnchor="middle"
 							fontFamily="Spectral, serif"
 							fontSize="16"
@@ -689,33 +705,8 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 					))}
 
 					{nodes.map((n) => (
-						<g
-							key={n.key}
-							className="ow-node"
-							data-clickable={n.state !== 'sealed'}
-							transform={`translate(${n.x} ${n.y})`}
-							role={n.state !== 'sealed' ? 'button' : undefined}
-							tabIndex={n.state !== 'sealed' ? 0 : undefined}
-							aria-label={
-								n.state !== 'sealed' ? `${n.title} — ${n.state}` : undefined
-							}
-							aria-disabled={n.state === 'sealed'}
-							onClick={
-								n.state !== 'sealed' ? () => onSelect(n.workflowId) : undefined
-							}
-							onKeyDown={
-								n.state !== 'sealed'
-									? (e) => {
-											if (e.key === 'Enter' || e.key === ' ') {
-												e.preventDefault();
-												onSelect(n.workflowId);
-											}
-										}
-									: undefined
-							}
-						>
+						<g key={n.key} transform={`translate(${n.x} ${n.y})`}>
 							<circle
-								className="ow-node-halo"
 								cx="0"
 								cy="-6"
 								r="46"
@@ -742,6 +733,8 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 								strokeWidth="1.4"
 								opacity="0.5"
 							/>
+							{/* cleared: a lit hanging lantern — doubles as the light
+							    that explains why the trail behind it is lit */}
 							<g opacity={n.lantern}>
 								<path
 									d="M0,-20 L0,-30 L13,-30"
@@ -764,6 +757,7 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 									filter="url(#ow-glow)"
 								/>
 							</g>
+							{/* current: lantern on a post + a pulsing accent ring */}
 							<g opacity={n.currentOn}>
 								<circle
 									className="ow-pulse-ring"
@@ -817,7 +811,6 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 							<DistrictHouse
 								key={key}
 								district={key}
-								cfg={HOUSES[key]}
 								color={theme.jobAids[key].color}
 							/>
 						),
@@ -889,8 +882,18 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 					</g>
 				</svg>
 
-				{/* HTML overlay: crisp text laid over the scaled SVG stage */}
-				<div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+				{/* HTML overlay: crisp text laid over the scaled SVG stage. The
+				    3/9px inset aligns the HTML type to the SVG geometry. */}
+				<div
+					style={{
+						position: 'absolute',
+						top: 9,
+						right: 0,
+						bottom: 0,
+						left: 3,
+						pointerEvents: 'none',
+					}}
+				>
 					{nodes
 						.filter((n) => !hidden.has(n.key))
 						.map((n) => (
@@ -944,15 +947,17 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 					{(['bpmh', 'cpoe', 'oncology', 'verification'] as JobAidId[]).map(
 						(key) => {
 							const list = byDistrict.get(key) ?? [];
-							const done = list.filter((w) => completed.includes(w.id)).length;
-							const pos = READOUT_POS[key];
+							const done = list.filter((w) =>
+								completed.includes(w.id),
+							).length;
+							const origin = HOUSE_ORIGIN[key];
 							return (
 								<div
 									key={key}
 									style={{
 										position: 'absolute',
-										left: pos.left,
-										top: pos.top,
+										left: origin.x + 54,
+										top: origin.y - 40,
 										width: 152,
 										textAlign: 'center',
 										whiteSpace: 'nowrap',
@@ -980,29 +985,34 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 					</div>
 				</div>
 
-				{/* Interactive layer: transparent buttons over each waystone, kept
-            separate from the label overlay so a hidden ordinal digit (under
-            a plaque) is still clickable. */}
+				{/* Interactive layer: transparent buttons sized off the halo,
+				    kept separate from the label overlay so a hidden ordinal
+				    digit (under a plaque) is still clickable. Only the current
+				    stone launches its workflow; cleared stones re-play; sealed
+				    stones are inert. */}
 				<div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
 					{nodes.map((n) => (
 						<button
 							key={n.key}
 							type="button"
+							className="ow-hit"
 							disabled={n.state === 'sealed'}
 							onClick={() => onSelect(n.workflowId)}
 							title={`${n.title} — ${n.state}`}
-							aria-label={`${n.title} — ${n.state === 'sealed' ? 'sealed' : n.state === 'current' ? 'current' : 'cleared, replay'}`}
+							aria-label={`${n.title} — ${
+								n.state === 'sealed'
+									? 'sealed'
+									: n.state === 'current'
+										? 'current'
+										: 'cleared, replay'
+							}`}
 							style={{
 								position: 'absolute',
 								left: n.x - 24,
 								top: n.y - 34,
 								width: 48,
 								height: 56,
-								background: 'none',
-								border: 'none',
-								padding: 0,
 								pointerEvents: n.state === 'sealed' ? 'none' : 'auto',
-								cursor: n.state === 'sealed' ? 'default' : 'pointer',
 							}}
 						/>
 					))}
@@ -1013,70 +1023,70 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 }
 
 /* ------------------------------------------------------------------ */
-/* House — two shared shells (signpost right / signpost left), differing
-   only in stroke color, smoke timing, sigil, and name lines. */
+/* Houses — each district gets a distinct period building, drawn around
+   its door threshold. All four share the ground shadow, lamp halo, arched
+   door, drifting vapour, and an identical right-hand signpost; the two
+   right-hand districts carry their wall lantern on the inner (tower) side. */
 /* ------------------------------------------------------------------ */
 
 function DistrictHouse({
 	district,
-	cfg,
 	color,
 }: {
 	district: JobAidId;
-	cfg: HouseCfg;
 	color: string;
 }) {
-	const sx = cfg.flip ? -1 : 1;
-	const sigilX = cfg.flip ? -144 : 84;
-	const textX = cfg.flip ? -124 : 104;
-	const boardX0 = cfg.flip ? -166 : 62;
-	const boardX1 = cfg.flip ? -62 : 166;
-	const hairlineX0 = cfg.flip ? -162 : 66;
-	const hairlineX1 = cfg.flip ? -66 : 162;
-	const postX = 84 * sx;
-	const lanternX = -64 * sx;
+	const origin = HOUSE_ORIGIN[district];
+	const name = HOUSE_NAME[district];
 
 	return (
-		<g transform={`translate(${cfg.x} ${cfg.y})`}>
+		<g transform={`translate(${origin.x} ${origin.y})`}>
 			<ellipse cx="0" cy="4" rx="86" ry="18" fill="#120c22" opacity="0.6" />
 			<circle cx="0" cy="-46" r="150" fill="url(#ow-lamp)" opacity="0.34" />
 
-			{/* body, roof, eave, door, windows — identical across all four houses */}
-			<path
-				d="M-56,0 L-56,-84 L56,-84 L56,0 Z"
-				fill="#2a1d47"
-				stroke={color}
-				strokeWidth="2"
-			/>
-			<path
-				d="M-72,-84 L0,-136 L72,-84 Z"
-				fill="#241a42"
-				stroke={color}
-				strokeWidth="2.5"
-			/>
-			<path
-				d="M-72,-84 L72,-84 L72,-76 L-72,-76 Z"
-				fill={color}
-				opacity="0.45"
-			/>
-			<rect
-				x="-40"
-				y="-64"
-				width="26"
-				height="24"
-				fill="#ffcf8f"
-				opacity="0.85"
-				filter="url(#ow-glow)"
-			/>
-			<rect
-				x="14"
-				y="-64"
-				width="26"
-				height="24"
-				fill="#ffcf8f"
-				opacity="0.85"
-				filter="url(#ow-glow)"
-			/>
+			{district === 'bpmh' && <BpmhHouse color={color} />}
+			{district === 'oncology' && <OncologyHouse color={color} />}
+			{district === 'cpoe' && <CpoeHouse color={color} />}
+			{district === 'verification' && <VerificationHouse color={color} />}
+
+			{/* drifting vapour from the chimney/finial */}
+			<g
+				fill="#c9b8e8"
+				opacity="0.16"
+				className="ow-smoke"
+				style={{ animationDuration: SMOKE_DUR[district] }}
+			>
+				{district === 'bpmh' && (
+					<>
+						<circle cx="42" cy="-208" r="7" />
+						<circle cx="50" cy="-226" r="9" />
+						<circle cx="40" cy="-246" r="11" />
+					</>
+				)}
+				{district === 'oncology' && (
+					<>
+						<circle cx="-8" cy="-212" r="7" />
+						<circle cx="0" cy="-230" r="9" />
+						<circle cx="-10" cy="-250" r="11" />
+					</>
+				)}
+				{district === 'cpoe' && (
+					<>
+						<circle cx="28" cy="-172" r="7" />
+						<circle cx="36" cy="-190" r="9" />
+						<circle cx="26" cy="-210" r="11" />
+					</>
+				)}
+				{district === 'verification' && (
+					<>
+						<circle cx="-46" cy="-108" r="7" />
+						<circle cx="-38" cy="-126" r="9" />
+						<circle cx="-48" cy="-146" r="11" />
+					</>
+				)}
+			</g>
+
+			{/* arched door, centred on the threshold */}
 			<path
 				d="M-13,0 L-13,-34 Q0,-44 13,-34 L13,0 Z"
 				fill="#3a2a1a"
@@ -1084,67 +1094,30 @@ function DistrictHouse({
 				strokeWidth="1.6"
 			/>
 
-			{/* chimney, mirrored by district */}
+			{/* signpost — identical on all four, board to the right */}
+			<path d="M84,4 L84,-50" stroke="#4a3d63" strokeWidth="5" />
 			<path
-				d={`M${30 * sx},-118 L${30 * sx},-146 L${46 * sx},-146 L${46 * sx},-107 Z`}
-				fill="#241a42"
-				stroke={color}
-				strokeWidth="1.6"
-			/>
-			<g
-				fill="#c9b8e8"
-				opacity="0.16"
-				className="ow-smoke"
-				style={{ animationDuration: cfg.smokeDelay }}
-			>
-				<circle cx={38 * sx} cy="-158" r="7" />
-				<circle cx={cfg.flip ? -30 : 46} cy="-176" r="9" />
-				<circle cx={cfg.flip ? -40 : 36} cy="-196" r="11" />
-			</g>
-
-			{/* lantern post, opposite the signpost */}
-			<path
-				d={`M${lanternX},-6 L${lanternX},-56`}
-				stroke="#4a3d63"
-				strokeWidth="3"
-			/>
-			<path
-				d={`M${lanternX - 6},-56 L${lanternX + 6},-56 L${lanternX + 8},-42 L${lanternX - 8},-42 Z`}
-				fill="#3a2a1a"
-				stroke="#caa14a"
-				strokeWidth="1.4"
-			/>
-			<circle
-				cx={lanternX}
-				cy="-49"
-				r="4.5"
-				fill="#ffd79a"
-				filter="url(#ow-glow)"
-			/>
-
-			{/* signpost */}
-			<path d={`M${postX},4 L${postX},-58`} stroke="#4a3d63" strokeWidth="5" />
-			<path
-				d={`M${boardX0},-116 L${boardX1},-116 L${boardX1},-60 L${boardX0},-60 Z`}
+				d="M62,-128 L198,-128 L198,-46 L62,-46 Z"
 				fill="#1b1230"
 				stroke="#caa14a"
 				strokeWidth="2"
 			/>
 			<path
-				d={`M${hairlineX0},-112 L${hairlineX1},-112 L${hairlineX1},-64 L${hairlineX0},-64 Z`}
+				d="M66,-124 L194,-124 L194,-50 L66,-50 Z"
 				fill="none"
 				stroke="#caa14a"
 				strokeWidth="0.8"
 				opacity="0.5"
 			/>
-			<g transform={`translate(${sigilX} -88)`}>
+			<g transform="translate(130 -104)">
 				<DistrictSigil district={district} color={color} />
 			</g>
-			{cfg.nameLines.map((line, i) => (
+			{name.lines.map((line, i) => (
 				<text
 					key={i}
-					x={textX}
-					y={cfg.nameY[i]}
+					x="130"
+					y={name.y[i]}
+					textAnchor="middle"
 					fontFamily="Cinzel, serif"
 					fontSize="13"
 					fontWeight="600"
@@ -1158,6 +1131,368 @@ function DistrictHouse({
 	);
 }
 
+/** BPMH — jettied timber-framed apothecary shop with a fold-down counter. */
+function BpmhHouse({ color }: { color: string }) {
+	return (
+		<>
+			<path
+				d="M-50,0 L-50,-70 L50,-70 L50,0 Z"
+				fill="#2a1d47"
+				stroke={color}
+				strokeWidth="2"
+			/>
+			<g stroke="#4a3d63" strokeWidth="1.2" opacity="0.6" fill="none">
+				<path d="M-50,-26 L50,-26" />
+				<path d="M-26,-70 L-26,-26" />
+				<path d="M26,-70 L26,-26" />
+			</g>
+			<path
+				d="M-64,-70 L-64,-130 L64,-130 L64,-70 Z"
+				fill="#2a1d47"
+				stroke={color}
+				strokeWidth="2"
+			/>
+			<path d="M-64,-76 L64,-76 L64,-66 L-64,-66 Z" fill={color} opacity="0.45" />
+			<g stroke="#4a3d63" strokeWidth="1.5" opacity="0.85" fill="none">
+				<path d="M-32,-130 L-32,-76" />
+				<path d="M0,-130 L0,-76" />
+				<path d="M32,-130 L32,-76" />
+				<path d="M-64,-130 L-32,-76" />
+				<path d="M-32,-130 L-64,-76" />
+				<path d="M64,-130 L32,-76" />
+				<path d="M32,-130 L64,-76" />
+			</g>
+			<path
+				d="M-74,-130 L0,-186 L74,-130 Z"
+				fill="#241a42"
+				stroke={color}
+				strokeWidth="2.5"
+			/>
+			<path
+				d="M-74,-130 L74,-130 L74,-122 L-74,-122 Z"
+				fill={color}
+				opacity="0.45"
+			/>
+			<path
+				d="M32,-158 L32,-196 L50,-196 L50,-145 Z"
+				fill="#241a42"
+				stroke={color}
+				strokeWidth="1.6"
+			/>
+			<rect
+				x="-58"
+				y="-120"
+				width="21"
+				height="22"
+				fill="#ffcf8f"
+				opacity="0.85"
+				filter="url(#ow-glow)"
+			/>
+			<rect
+				x="37"
+				y="-120"
+				width="21"
+				height="22"
+				fill="#ffcf8f"
+				opacity="0.85"
+				filter="url(#ow-glow)"
+			/>
+			<rect
+				x="16"
+				y="-56"
+				width="30"
+				height="26"
+				fill="#ffcf8f"
+				opacity="0.9"
+				filter="url(#ow-glow)"
+			/>
+			<path
+				d="M14,-30 L48,-30 L56,-15 L22,-15 Z"
+				fill="#372753"
+				stroke="#caa14a"
+				strokeWidth="1.4"
+			/>
+			<path d="M-64,-66 L-78,-66" stroke="#4a3d63" strokeWidth="2.4" />
+			<path d="M-78,-66 L-78,-58" stroke="#4a3d63" strokeWidth="1.4" />
+			<path
+				d="M-84,-58 L-72,-58 L-70,-44 L-86,-44 Z"
+				fill="#3a2a1a"
+				stroke="#caa14a"
+				strokeWidth="1.4"
+			/>
+			<circle cx="-78" cy="-51" r="4.5" fill="#ffd79a" filter="url(#ow-glow)" />
+		</>
+	);
+}
+
+/** Oncology — domed stillroom / observatory with a copper onion dome. */
+function OncologyHouse({ color }: { color: string }) {
+	return (
+		<>
+			<path
+				d="M-62,0 L-62,-13 L62,-13 L62,0 Z"
+				fill="#241a42"
+				stroke={color}
+				strokeWidth="1.6"
+			/>
+			<path
+				d="M-52,-13 L-52,-68 L-36,-90 L36,-90 L52,-68 L52,-13 Z"
+				fill="#2a1d47"
+				stroke={color}
+				strokeWidth="2"
+			/>
+			<path d="M-36,-90 L-36,-13" stroke="#4a3d63" strokeWidth="1.2" opacity="0.6" />
+			<path d="M36,-90 L36,-13" stroke="#4a3d63" strokeWidth="1.2" opacity="0.6" />
+			<path d="M-58,-90 L58,-90 L58,-99 L-58,-99 Z" fill={color} opacity="0.45" />
+			<path
+				d="M-52,-99 C-60,-128 -34,-138 -18,-150 C-8,-158 -4,-165 0,-172 C4,-165 8,-158 18,-150 C34,-138 60,-128 52,-99 Z"
+				fill="#241a42"
+				stroke={color}
+				strokeWidth="2.5"
+			/>
+			<path
+				d="M-30,-108 C-26,-126 -12,-136 0,-150"
+				fill="none"
+				stroke={color}
+				strokeWidth="1.2"
+				opacity="0.5"
+			/>
+			<path
+				d="M30,-108 C26,-126 12,-136 0,-150"
+				fill="none"
+				stroke={color}
+				strokeWidth="1.2"
+				opacity="0.5"
+			/>
+			<circle
+				cx="0"
+				cy="-118"
+				r="11"
+				fill="#ffcf8f"
+				opacity="0.9"
+				filter="url(#ow-glow)"
+			/>
+			<path d="M0,-172 L0,-196" stroke="#caa14a" strokeWidth="2.5" />
+			<path d="M-9,-188 L9,-188" stroke="#caa14a" strokeWidth="1.8" />
+			<circle cx="0" cy="-200" r="5" fill="#caa14a" />
+			<path
+				d="M-38,-30 L-38,-48 Q-27,-60 -16,-48 L-16,-30 Z"
+				fill="#ffcf8f"
+				opacity="0.85"
+				filter="url(#ow-glow)"
+			/>
+			<path
+				d="M16,-30 L16,-48 Q27,-60 38,-48 L38,-30 Z"
+				fill="#ffcf8f"
+				opacity="0.7"
+				filter="url(#ow-glow)"
+			/>
+			<path d="M-74,-6 L-74,-56" stroke="#4a3d63" strokeWidth="3" />
+			<path
+				d="M-80,-56 L-68,-56 L-66,-42 L-82,-42 Z"
+				fill="#3a2a1a"
+				stroke="#caa14a"
+				strokeWidth="1.4"
+			/>
+			<circle cx="-74" cy="-49" r="4.5" fill="#ffd79a" filter="url(#ow-glow)" />
+		</>
+	);
+}
+
+/** CPOE — distillery with a copper alembic, swan-neck and oast cowl. */
+function CpoeHouse({ color }: { color: string }) {
+	return (
+		<>
+			<path
+				d="M-36,0 L-36,-116 L36,-116 L36,0 Z"
+				fill="#2a1d47"
+				stroke={color}
+				strokeWidth="2"
+			/>
+			<path
+				d="M-50,-116 L0,-164 L50,-116 Z"
+				fill="#241a42"
+				stroke={color}
+				strokeWidth="2.5"
+			/>
+			<path
+				d="M-50,-116 L50,-116 L50,-108 L-50,-108 Z"
+				fill={color}
+				opacity="0.45"
+			/>
+			<path
+				d="M15,-133 L33,-133 L29,-156 L21,-156 Z"
+				fill="#241a42"
+				stroke={color}
+				strokeWidth="1.6"
+			/>
+			<path d="M21,-156 L29,-156" stroke={color} strokeWidth="1.6" />
+			<circle cx="25" cy="-159" r="3" fill={color} opacity="0.7" />
+			<rect
+				x="-26"
+				y="-98"
+				width="22"
+				height="20"
+				fill="#ffcf8f"
+				opacity="0.85"
+				filter="url(#ow-glow)"
+			/>
+			<rect
+				x="4"
+				y="-98"
+				width="22"
+				height="20"
+				fill="#ffcf8f"
+				opacity="0.85"
+				filter="url(#ow-glow)"
+			/>
+			<path
+				d="M-76,0 L-76,-52 L-36,-52 L-36,0 Z"
+				fill="#2a1d47"
+				stroke={color}
+				strokeWidth="1.8"
+			/>
+			<path
+				d="M-82,-52 L-30,-52 L-30,-68 Z"
+				fill="#241a42"
+				stroke={color}
+				strokeWidth="2"
+			/>
+			<path
+				d="M-70,0 L-70,-32 Q-56,-44 -42,-32 L-42,0 Z"
+				fill="#ffcf8f"
+				opacity="0.22"
+			/>
+			<circle
+				cx="-56"
+				cy="-21"
+				r="13"
+				fill="#372753"
+				stroke="#caa14a"
+				strokeWidth="1.6"
+			/>
+			<path
+				d="M-56,-34 C-56,-45 -40,-47 -40,-37 L-40,-26"
+				fill="none"
+				stroke="#caa14a"
+				strokeWidth="2.2"
+			/>
+			<ellipse
+				cx="-56"
+				cy="-5"
+				rx="10"
+				ry="4"
+				fill="#ffcf8f"
+				opacity="0.9"
+				filter="url(#ow-glow)"
+			/>
+			<path d="M46,-6 L46,-52" stroke="#4a3d63" strokeWidth="3" />
+			<path
+				d="M40,-52 L52,-52 L54,-38 L38,-38 Z"
+				fill="#3a2a1a"
+				stroke="#caa14a"
+				strokeWidth="1.4"
+			/>
+			<circle cx="46" cy="-45" r="4.5" fill="#ffd79a" filter="url(#ow-glow)" />
+		</>
+	);
+}
+
+/** Pharmacist Verification — coursed-ashlar weighing house with a crow-
+    stepped gable and a great balance scale. */
+function VerificationHouse({ color }: { color: string }) {
+	return (
+		<>
+			<path
+				d="M-64,0 L-64,-76 L64,-76 L64,0 Z"
+				fill="#2a1d47"
+				stroke={color}
+				strokeWidth="2"
+			/>
+			<g stroke="#4a3d63" strokeWidth="1.1" opacity="0.55" fill="none">
+				<path d="M-64,-19 L64,-19" />
+				<path d="M-64,-38 L64,-38" />
+				<path d="M-64,-57 L64,-57" />
+				<path d="M-42,-38 L-42,-19" />
+				<path d="M42,-38 L42,-19" />
+				<path d="M-52,-57 L-52,-38" />
+				<path d="M52,-57 L52,-38" />
+			</g>
+			<path d="M-70,-76 L70,-76 L70,-86 L-70,-86 Z" fill={color} opacity="0.45" />
+			<path
+				d="M-52,-86 L-52,-100 L-34,-100 L-34,-114 L-16,-114 L-16,-128 L16,-128 L16,-114 L34,-114 L34,-100 L52,-100 L52,-86 Z"
+				fill="#241a42"
+				stroke={color}
+				strokeWidth="2"
+			/>
+			<g stroke="#caa14a" fill="none">
+				<path d="M0,-128 L0,-152" strokeWidth="2.2" />
+				<path d="M-30,-152 L30,-152" strokeWidth="2.2" />
+				<path d="M-4,-152 L0,-158 L4,-152 Z" fill="#caa14a" strokeWidth="1" />
+				<path d="M-30,-152 L-30,-142" />
+				<path d="M30,-152 L30,-142" />
+				<path
+					d="M-39,-142 A9,6 0 0 0 -21,-142 Z"
+					fill="#caa14a"
+					opacity="0.4"
+					strokeWidth="1.4"
+				/>
+				<path
+					d="M21,-142 A9,6 0 0 0 39,-142 Z"
+					fill="#caa14a"
+					opacity="0.4"
+					strokeWidth="1.4"
+				/>
+			</g>
+			<rect
+				x="-52"
+				y="-50"
+				width="20"
+				height="22"
+				fill="#ffcf8f"
+				opacity="0.85"
+				filter="url(#ow-glow)"
+			/>
+			<rect
+				x="32"
+				y="-50"
+				width="20"
+				height="22"
+				fill="#ffcf8f"
+				opacity="0.85"
+				filter="url(#ow-glow)"
+			/>
+			<path
+				d="M-38,-56 L38,-56 L38,-67 L-38,-67 Z"
+				fill="#372753"
+				stroke={color}
+				strokeWidth="1.4"
+			/>
+			<path
+				d="M-32,-56 L-32,0 L-22,0 L-22,-56 Z"
+				fill="#372753"
+				stroke={color}
+				strokeWidth="1.4"
+			/>
+			<path
+				d="M22,-56 L22,0 L32,0 L32,-56 Z"
+				fill="#372753"
+				stroke={color}
+				strokeWidth="1.4"
+			/>
+			<path d="M-76,-6 L-76,-56" stroke="#4a3d63" strokeWidth="3" />
+			<path
+				d="M-82,-56 L-70,-56 L-68,-42 L-84,-42 Z"
+				fill="#3a2a1a"
+				stroke="#caa14a"
+				strokeWidth="1.4"
+			/>
+			<circle cx="-76" cy="-49" r="4.5" fill="#ffd79a" filter="url(#ow-glow)" />
+		</>
+	);
+}
+
+/* Alchemical/apothecary sigils, drawn at the signpost board's top-centre. */
 function DistrictSigil({
 	district,
 	color,
