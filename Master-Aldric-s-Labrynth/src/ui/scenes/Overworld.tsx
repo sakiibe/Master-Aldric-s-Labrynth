@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { BuiltWorkflow, JobAidId, WorkflowId } from '../../game/types';
 import { useTheme } from '../../state/useTheme';
+import { DistrictSigil } from '../art/DistrictSigil';
+import { DISTRICT_TINT } from '../art/districtTints';
 
 /**
  * The Overworld — one continuous night map. Four districts (job aids), each
@@ -135,13 +137,6 @@ const LAYOUT: DistrictLayout[] = [
 		plaque: { x: 1490, y: 1030, side: 'left' },
 	},
 ];
-
-const PLAQUE_TINT: Record<JobAidId, string> = {
-	bpmh: '#7fb3d0',
-	verification: '#b39ada',
-	cpoe: '#79c4b5',
-	oncology: '#d6ac74',
-};
 
 /** House door threshold — the group origin each building is drawn around. */
 const HOUSE_ORIGIN: Record<JobAidId, Pt> = {
@@ -378,7 +373,7 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 				boxLeft: right ? px + 18 : px - w + 18,
 				boxTop: py - 26,
 				boxWidth: w - 36,
-				tint: PLAQUE_TINT[L.key],
+				tint: DISTRICT_TINT[L.key],
 				kicker: `NEXT · ${done + 1} OF ${n}`,
 				label: list[done].title,
 			});
@@ -564,9 +559,21 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 						opacity="0.7"
 					/>
 					<g opacity="0.5">
-						<ellipse cx="960" cy="1006" rx="1100" ry="86" fill="url(#ow-mist)" />
+						<ellipse
+							cx="960"
+							cy="1006"
+							rx="1100"
+							ry="86"
+							fill="url(#ow-mist)"
+						/>
 						<ellipse cx="420" cy="1042" rx="640" ry="60" fill="url(#ow-mist)" />
-						<ellipse cx="1480" cy="1050" rx="600" ry="54" fill="url(#ow-mist)" />
+						<ellipse
+							cx="1480"
+							cy="1050"
+							rx="600"
+							ry="54"
+							fill="url(#ow-mist)"
+						/>
 					</g>
 
 					{/* Aldric's tower — non-interactive hub; every trail terminates here */}
@@ -947,9 +954,7 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 					{(['bpmh', 'cpoe', 'oncology', 'verification'] as JobAidId[]).map(
 						(key) => {
 							const list = byDistrict.get(key) ?? [];
-							const done = list.filter((w) =>
-								completed.includes(w.id),
-							).length;
+							const done = list.filter((w) => completed.includes(w.id)).length;
 							const origin = HOUSE_ORIGIN[key];
 							return (
 								<div
@@ -1152,7 +1157,11 @@ function BpmhHouse({ color }: { color: string }) {
 				stroke={color}
 				strokeWidth="2"
 			/>
-			<path d="M-64,-76 L64,-76 L64,-66 L-64,-66 Z" fill={color} opacity="0.45" />
+			<path
+				d="M-64,-76 L64,-76 L64,-66 L-64,-66 Z"
+				fill={color}
+				opacity="0.45"
+			/>
 			<g stroke="#4a3d63" strokeWidth="1.5" opacity="0.85" fill="none">
 				<path d="M-32,-130 L-32,-76" />
 				<path d="M0,-130 L0,-76" />
@@ -1241,9 +1250,23 @@ function OncologyHouse({ color }: { color: string }) {
 				stroke={color}
 				strokeWidth="2"
 			/>
-			<path d="M-36,-90 L-36,-13" stroke="#4a3d63" strokeWidth="1.2" opacity="0.6" />
-			<path d="M36,-90 L36,-13" stroke="#4a3d63" strokeWidth="1.2" opacity="0.6" />
-			<path d="M-58,-90 L58,-90 L58,-99 L-58,-99 Z" fill={color} opacity="0.45" />
+			<path
+				d="M-36,-90 L-36,-13"
+				stroke="#4a3d63"
+				strokeWidth="1.2"
+				opacity="0.6"
+			/>
+			<path
+				d="M36,-90 L36,-13"
+				stroke="#4a3d63"
+				strokeWidth="1.2"
+				opacity="0.6"
+			/>
+			<path
+				d="M-58,-90 L58,-90 L58,-99 L-58,-99 Z"
+				fill={color}
+				opacity="0.45"
+			/>
 			<path
 				d="M-52,-99 C-60,-128 -34,-138 -18,-150 C-8,-158 -4,-165 0,-172 C4,-165 8,-158 18,-150 C34,-138 60,-128 52,-99 Z"
 				fill="#241a42"
@@ -1418,7 +1441,11 @@ function VerificationHouse({ color }: { color: string }) {
 				<path d="M-52,-57 L-52,-38" />
 				<path d="M52,-57 L52,-38" />
 			</g>
-			<path d="M-70,-76 L70,-76 L70,-86 L-70,-86 Z" fill={color} opacity="0.45" />
+			<path
+				d="M-70,-76 L70,-76 L70,-86 L-70,-86 Z"
+				fill={color}
+				opacity="0.45"
+			/>
 			<path
 				d="M-52,-86 L-52,-100 L-34,-100 L-34,-114 L-16,-114 L-16,-128 L16,-128 L16,-114 L34,-114 L34,-100 L52,-100 L52,-86 Z"
 				fill="#241a42"
@@ -1489,61 +1516,5 @@ function VerificationHouse({ color }: { color: string }) {
 			/>
 			<circle cx="-76" cy="-49" r="4.5" fill="#ffd79a" filter="url(#ow-glow)" />
 		</>
-	);
-}
-
-/* Alchemical/apothecary sigils, drawn at the signpost board's top-centre. */
-function DistrictSigil({
-	district,
-	color,
-}: {
-	district: JobAidId;
-	color: string;
-}) {
-	if (district === 'bpmh') {
-		// mortar & pestle
-		return (
-			<g stroke={color} strokeWidth="1.8" fill="none">
-				<path d="M-9,-2 A9,9 0 0 0 9,-2 Z" fill={color} opacity="0.5" />
-				<path d="M-11,-2 L11,-2" />
-				<path d="M2,-6 L10,-16" />
-				<path d="M9,10 L-9,10" />
-			</g>
-		);
-	}
-	if (district === 'oncology') {
-		// alchemical sun
-		return (
-			<g stroke={color} strokeWidth="1.8" fill="none">
-				<circle cx="0" cy="0" r="8" />
-				<circle cx="0" cy="0" r="3" fill={color} />
-				<path d="M0,-13 L0,-10" />
-				<path d="M0,13 L0,10" />
-				<path d="M-13,0 L-10,0" />
-				<path d="M13,0 L10,0" />
-			</g>
-		);
-	}
-	if (district === 'cpoe') {
-		// retort / flask
-		return (
-			<g stroke={color} strokeWidth="1.8" fill="none">
-				<path d="M-4,-12 L4,-12" />
-				<path d="M-3,-12 L-3,-5 L-8,6 A9,9 0 0 0 8,6 L3,-5 L3,-12" />
-				<path d="M-7,3 L7,3" stroke={color} strokeWidth="5" opacity="0.55" />
-			</g>
-		);
-	}
-	// verification: funnel on a stand
-	return (
-		<g stroke={color} strokeWidth="1.8" fill="none">
-			<path
-				d="M-8,-11 L8,-11 L1,-1 L1,11 L-1,11 L-1,-1 Z"
-				fill={color}
-				opacity="0.35"
-			/>
-			<path d="M-8,-11 L8,-11" />
-			<path d="M-9,12 L9,12" />
-		</g>
 	);
 }

@@ -13,6 +13,7 @@ import { SoundControl } from './ui/components/SoundControl';
 import { DeadEnd } from './ui/scenes/DeadEnd';
 import { Junction } from './ui/scenes/Junction';
 import { Overworld } from './ui/scenes/Overworld';
+import { OverworldLadder } from './ui/scenes/OverworldLadder';
 import { TitleScreen } from './ui/scenes/TitleScreen';
 import './ui/styles/game.css';
 
@@ -21,13 +22,23 @@ const workflowsById: Record<WorkflowId, BuiltWorkflow> = Object.fromEntries(
 	builtWorkflows.map((w) => [w.id, w]),
 );
 
+/**
+ * Story Mode opens the gated trail map, Free Play the flat ladder. They are
+ * two presentations of the same 48 workflows over the same progress, so a
+ * workflow remembers which one launched it and returns there.
+ */
+type HomeScene = 'overworld' | 'ladder';
+
 type Scene =
 	| { name: 'title' }
 	| { name: 'overworld' }
-	| { name: 'workflow'; id: WorkflowId };
+	| { name: 'ladder' }
+	| { name: 'workflow'; id: WorkflowId; from: HomeScene };
 
 interface WorkflowScreenProps {
 	workflow: BuiltWorkflow;
+	/** Where "return" goes back to — the trail map or the ladder. */
+	returnLabel: string;
 	onReturnToOverworld: () => void;
 }
 
@@ -68,6 +79,7 @@ function useRunSounds(run: RunState): void {
 
 function WorkflowScreen({
 	workflow,
+	returnLabel,
 	onReturnToOverworld,
 }: WorkflowScreenProps) {
 	const theme = useTheme();
@@ -118,7 +130,7 @@ function WorkflowScreen({
 						Begin again
 					</button>
 					<button type="button" onClick={onReturnToOverworld}>
-						Return to {theme.labels.overworld}
+						Return to {returnLabel}
 					</button>
 				</div>
 			)}
@@ -128,7 +140,7 @@ function WorkflowScreen({
 					<h1>{workflow.title} — complete</h1>
 					<p>{run.taken.map((t) => t.label).join(' → ')}</p>
 					<button type="button" onClick={onReturnToOverworld}>
-						Return to {theme.labels.overworld}
+						Return to {returnLabel}
 					</button>
 				</div>
 			)}
@@ -137,6 +149,7 @@ function WorkflowScreen({
 }
 
 function Game() {
+	const theme = useTheme();
 	const [scene, setScene] = useState<Scene>({ name: 'title' });
 	const [completed, setCompleted] = useState<WorkflowId[]>(() =>
 		getCompleted(),
@@ -144,13 +157,13 @@ function Game() {
 	const { playMusic, playSfx } = useSound();
 
 	// Swap the looping music bed to match the current scene: the mozart menu
-	// track on the title screen, the lab bed on the overworld, and the junction
-	// bed inside a workflow.
+	// track on the title screen, the lab bed on either home screen, and the
+	// junction bed inside a workflow.
 	useEffect(() => {
 		const bed =
 			scene.name === 'title'
 				? 'menu'
-				: scene.name === 'overworld'
+				: scene.name === 'overworld' || scene.name === 'ladder'
 					? 'overworld'
 					: 'junction';
 		playMusic(bed);
@@ -159,24 +172,26 @@ function Game() {
 	const returnToOverworld = useCallback(() => {
 		playSfx('click');
 		setCompleted(getCompleted());
-		setScene({ name: 'overworld' });
+		setScene((s) => ({ name: s.name === 'workflow' ? s.from : 'overworld' }));
 	}, [playSfx]);
 
 	const selectWorkflow = useCallback(
 		(id: WorkflowId) => {
 			playSfx('click');
-			setScene({ name: 'workflow', id });
+			setScene((s) => ({
+				name: 'workflow',
+				id,
+				from: s.name === 'ladder' ? 'ladder' : 'overworld',
+			}));
 		},
 		[playSfx],
 	);
 
 	if (scene.name === 'title') {
-		// Story Mode and Free Play both open the one Overworld map today —
-		// the engine has no separate free-play flow yet.
 		return (
 			<TitleScreen
 				onStoryMode={() => setScene({ name: 'overworld' })}
-				onFreePlay={() => setScene({ name: 'overworld' })}
+				onFreePlay={() => setScene({ name: 'ladder' })}
 			/>
 		);
 	}
@@ -191,9 +206,22 @@ function Game() {
 		);
 	}
 
+	if (scene.name === 'ladder') {
+		return (
+			<OverworldLadder
+				workflows={builtWorkflows}
+				completed={completed}
+				onSelect={selectWorkflow}
+			/>
+		);
+	}
+
 	return (
 		<WorkflowScreen
 			workflow={workflowsById[scene.id]}
+			returnLabel={
+				scene.from === 'ladder' ? 'the Ladder of Rites' : theme.labels.overworld
+			}
 			onReturnToOverworld={returnToOverworld}
 		/>
 	);
