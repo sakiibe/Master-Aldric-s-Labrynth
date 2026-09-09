@@ -9,6 +9,7 @@ import { getCompleted } from './state/storage';
 import { useRun } from './state/useRun';
 import { SoundProvider } from './sound/SoundProvider';
 import { useSound } from './sound/useSound';
+import { BackButton } from './ui/components/BackButton';
 import { PatienceMeter } from './ui/components/PatienceMeter';
 import { SoundControl } from './ui/components/SoundControl';
 import { DeadEnd } from './ui/scenes/DeadEnd';
@@ -81,6 +82,10 @@ function WorkflowScreen({
 			<PatienceMeter
 				remaining={run.patienceRemaining}
 				total={workflow.patience}
+			/>
+			<BackButton
+				label={`← ${theme.labels.overworld}`}
+				onClick={onReturnToOverworld}
 			/>
 
 			{run.status === 'junction' && (
@@ -163,6 +168,14 @@ function Game() {
 		setScene({ name: 'overworld' });
 	}, [playSfx]);
 
+	// Back one step from the overworld to the title. Refreshes `completed` so
+	// the title's mastery plate reflects anything cleared this session.
+	const returnToTitle = useCallback(() => {
+		playSfx('click');
+		setCompleted(getCompleted());
+		setScene({ name: 'title' });
+	}, [playSfx]);
+
 	const selectWorkflow = useCallback(
 		(id: WorkflowId) => {
 			playSfx('click');
@@ -186,11 +199,14 @@ function Game() {
 
 	if (scene.name === 'overworld') {
 		return (
-			<Overworld
-				workflows={builtWorkflows}
-				completed={completed}
-				onSelect={selectWorkflow}
-			/>
+			<>
+				<Overworld
+					workflows={builtWorkflows}
+					completed={completed}
+					onSelect={selectWorkflow}
+				/>
+				<BackButton label="← Main Menu" onClick={returnToTitle} />
+			</>
 		);
 	}
 
