@@ -9,6 +9,9 @@
      viewport above it. */
 	display: flow-root;
 	min-height: 100vh;
+	/* dvh so a mobile browser's collapsing toolbar doesn't leave a strip of
+     raw viewport below the scene; 100vh above stays as the fallback. */
+	min-height: 100dvh;
 	background: var(--color-bg);
 	color: var(--color-ink);
 	font-family: var(--font-body);
@@ -28,12 +31,20 @@
 	height: 100%;
 }
 
-/* ---------- Patience meter (shared header, pinned top-right) ---------- */
+/* ---------- Patience meter (shared header, pinned top-right) ----------
+
+   Both fixed widgets share --chrome-inset so scenes can reserve exactly
+   enough top padding to clear them at any width (see .junction-scene). */
+
+.theme-root {
+	--chrome-inset: 24px;
+	--chrome-height: 40px;
+}
 
 .patience-meter {
 	position: fixed;
-	top: 24px;
-	right: 24px;
+	top: var(--chrome-inset);
+	right: var(--chrome-inset);
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -50,13 +61,13 @@
 /* Sound toggle — fixed top-left, mirroring the patience meter's placement. */
 .sound-control {
 	position: fixed;
-	top: 24px;
-	left: 24px;
+	top: var(--chrome-inset, 24px);
+	left: var(--chrome-inset, 24px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 40px;
-	height: 40px;
+	width: var(--chrome-height, 40px);
+	height: var(--chrome-height, 40px);
 	background: var(--color-surface);
 	border: 1.5px solid var(--color-accent);
 	border-radius: 10px;
@@ -101,11 +112,22 @@
 	z-index: 0;
 	max-width: 900px;
 	min-height: 100vh;
+	min-height: 100dvh;
 	margin: 0 auto;
-	padding: 32px 24px 24px;
+	/* Top padding clears the fixed sound/patience chrome. On a wide screen
+     those sit outside the 900px column and 32px is plenty; on a narrow one
+     they overlap it, so reserve their full height instead. */
+	padding: max(32px, calc(var(--chrome-inset) + var(--chrome-height) + 12px))
+		clamp(14px, 4vw, 24px) clamp(16px, 3vw, 24px);
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+	.junction-scene {
+		padding-top: 32px;
+	}
 }
 
 .junction-scene .scene-art--backdrop {
@@ -113,7 +135,7 @@
 }
 
 .junction-header {
-	margin-bottom: 24px;
+	margin-bottom: clamp(16px, 3vw, 24px);
 }
 
 .junction-location {
@@ -127,10 +149,11 @@
 
 .junction-prompt {
 	font-family: var(--font-display);
-	font-size: 1.5rem;
+	font-size: clamp(1.15rem, 3.4vw, 1.5rem);
 	font-weight: 600;
 	margin: 8px 0 0;
 	text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+	text-wrap: balance;
 }
 
 .doors {
@@ -138,9 +161,9 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 20px;
+	gap: clamp(12px, 2.4vw, 20px);
 	flex-wrap: wrap;
-	margin: 0 0 24px;
+	margin: 0 0 clamp(16px, 3vw, 24px);
 }
 
 /* The door IS its SVG archway — the button itself is fully invisible (no
@@ -148,7 +171,10 @@
    drift out of alignment with the art rendered inside it. */
 .door {
 	position: relative;
-	width: 220px;
+	/* Three doors plus gaps have to fit the column at any width down to the
+     stacking breakpoint above, where this becomes a single comfortable
+     column instead. */
+	width: clamp(150px, 26vw, 220px);
 	aspect-ratio: 140 / 196;
 	background: none;
 	border: none;
@@ -157,8 +183,13 @@
 	transition: transform 160ms;
 }
 
-.door:hover:not(:disabled) {
-	transform: translateY(-3px);
+/* Hover affordances are gated on a real pointer — on touch, :hover sticks
+   after a tap and leaves the door raised and outlined until you tap
+   elsewhere. */
+@media (hover: hover) {
+	.door:hover:not(:disabled) {
+		transform: translateY(-3px);
+	}
 }
 
 .door:disabled {
@@ -181,7 +212,14 @@
 		filter 160ms;
 }
 
-.door:hover:not(:disabled) .door-frame {
+@media (hover: hover) {
+	.door:hover:not(:disabled) .door-frame {
+		stroke: color-mix(in srgb, var(--color-accent) 70%, transparent);
+	}
+}
+
+/* Keyboard/AT users get the same "this is the door under the cursor" cue. */
+.door:focus-visible .door-frame {
 	stroke: color-mix(in srgb, var(--color-accent) 70%, transparent);
 }
 
@@ -213,6 +251,37 @@
 	box-shadow:
 		0 0 0 3px color-mix(in srgb, var(--color-correct) 40%, transparent),
 		0 0 14px color-mix(in srgb, var(--color-correct) 55%, transparent);
+}
+
+/* Phones keep all three doors on screen together rather than stacking them.
+   The whole task is comparing three Cerner button names against each other,
+   and stacked full-height arches push the third one two screens down — you
+   can't weigh an option you have to scroll to find. So the arches get small
+   and the plaque gets the room instead: nearly the full door width and a
+   smaller face, since the plaque is the part that has to be read.
+   Placed after the .door rules above so it wins. */
+@media (max-width: 560px) {
+	.doors {
+		gap: 10px;
+	}
+
+	/* Equal thirds of whatever is left after the gaps; aspect-ratio still
+     sets the height, so don't let align-items stretch it. */
+	.door {
+		flex: 1 1 0;
+		width: auto;
+		min-width: 0;
+	}
+
+	/* 94%, matching the arch path's own 4..136-of-140 span, so the plaque
+     doesn't ledge out past the stonework. */
+	.door-plaque {
+		width: 94%;
+		padding: 7px 4px;
+		font-size: 0.72rem;
+		letter-spacing: -0.01em;
+		hyphens: auto;
+	}
 }
 
 .hint-bar {
@@ -296,17 +365,44 @@
 	font-size: 0.85rem;
 }
 
-/* ---------- Dead end (Hades-style: art fills the frame, dialogue box overlays the bottom) ---------- */
+/* ---------- Dead end (Hades-style: the painting IS the screen, dialogue box overlays the bottom) ----------
+
+   A full-viewport, one-cell grid: the painting covers the whole stage and
+   the dialogue box is placed in the same cell, aligned to the bottom and
+   capped at a readable measure so the line length doesn't stretch with the
+   window. Nothing here is boxed to a fixed aspect — the art crops to
+   whatever shape the viewport is. */
 
 .dead-end-scene {
 	position: relative;
 	z-index: 0;
-	max-width: 900px;
-	aspect-ratio: 690 / 440;
-	margin: 24px auto;
-	border-radius: 12px;
+	display: grid;
+	grid-template-areas: 'stage';
+	align-items: end;
+	justify-items: center;
+	width: 100%;
+	min-height: 100vh;
+	min-height: 100dvh;
 	overflow: hidden;
-	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.dead-end-scene > * {
+	grid-area: stage;
+}
+
+/* Cropped to fill the viewport — the paintings are 1.5–1.9 wide and the
+   window can be anything. Each one carries its own object-position (the
+   registry's `focus`, applied inline) pointing at Aldric; this is only the
+   fallback for art that hasn't declared one. */
+.dead-end-painting {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center 38%;
 }
 
 .dead-end-scene .scene-art--backdrop {
@@ -317,19 +413,40 @@
 	z-index: 1;
 }
 
-.dialogue-box {
-	position: absolute;
-	left: 20px;
-	right: 20px;
-	bottom: 20px;
+/* Darkens the painting's lower third so the dialogue box reads against a
+   bright bathtub or a candlelit table alike. */
+.dead-end-scene::before {
+	content: '';
+	grid-area: stage;
+	align-self: stretch;
+	/* justify-items on the parent centres the dialogue box; the scrim has to
+     opt back out of that and span the full width. */
+	justify-self: stretch;
 	z-index: 2;
+	pointer-events: none;
+	background: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.72) 0%,
+		rgba(0, 0, 0, 0.34) 24%,
+		rgba(0, 0, 0, 0) 52%
+	);
+}
+
+.dialogue-box {
+	position: relative;
+	z-index: 3;
+	/* Capped at a readable measure rather than tracking the window — on a
+     wide monitor a full-width box would run Aldric's rule out to 1800px of
+     single-line text. */
+	width: min(920px, 100% - clamp(20px, 5vw, 80px));
+	margin-bottom: clamp(16px, 5vh, 48px);
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 	background: color-mix(in srgb, var(--color-surface) 92%, transparent);
 	border: 2px solid var(--color-accent);
 	border-radius: 14px;
-	padding: 18px 20px;
+	padding: clamp(12px, 2.2vw, 18px) clamp(14px, 2.4vw, 20px);
 	backdrop-filter: blur(2px);
 }
 
@@ -337,13 +454,13 @@
 	font-family: var(--font-display);
 	font-weight: 700;
 	color: var(--color-accent);
-	font-size: 0.95rem;
+	font-size: clamp(0.85rem, 2.6vw, 0.95rem);
 }
 
 .dialogue-line {
 	margin: 0;
 	font-family: var(--font-body);
-	font-size: 0.95rem;
+	font-size: clamp(0.85rem, 2.6vw, 0.95rem);
 	min-height: 1.4em;
 }
 
@@ -352,7 +469,7 @@
 	font-family: var(--font-body);
 	font-weight: 600;
 	color: var(--color-accent);
-	font-size: 0.9rem;
+	font-size: clamp(0.82rem, 2.5vw, 0.9rem);
 }
 
 .dialogue-citation {
@@ -361,20 +478,74 @@
 	font-style: italic;
 	font-size: 0.75rem;
 	color: var(--color-ink-muted);
+	overflow-wrap: anywhere;
 }
 
 .dialogue-action {
 	align-self: flex-end;
 	background: none;
 	border: none;
+	/* A 44px touch target without moving the label off the box's edge. */
+	margin: -8px -8px -8px 0;
+	padding: 10px 8px;
 	color: var(--color-ink-muted);
 	font-family: var(--font-ui);
 	font-size: 0.85rem;
 	cursor: pointer;
 }
 
-.dialogue-action:hover {
+.dialogue-action:hover,
+.dialogue-action:focus-visible {
 	color: var(--color-ink);
+}
+
+/* Under ~640px the dialogue box needs so many lines that it covers the whole
+   painting — Aldric ends up entirely behind his own punchline. So stop
+   overlaying and split the screen instead: the art takes the space the text
+   doesn't need, the box becomes a panel under it. Still full-viewport, just
+   divided rather than layered. (A wider threshold than the door stacking
+   above: doors still fit three-up at 600px, this doesn't.) */
+@media (max-width: 640px) {
+	.dead-end-scene {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.dead-end-scene::before {
+		display: none;
+	}
+
+	/* flex-basis 0 so the art is sized purely by the leftover space; the
+     floor keeps it a scene rather than a letterbox strip when the rule text
+     runs long on a short phone. */
+	.dead-end-painting {
+		position: static;
+		flex: 1 1 0;
+		min-height: 34dvh;
+		width: 100%;
+		height: auto;
+	}
+
+	/* The fallback art layers have no intrinsic size to flex against. */
+	.dead-end-scene .scene-art {
+		position: relative;
+		flex: 1 1 0;
+		min-height: 34dvh;
+	}
+
+	.dead-end-scene .scene-art--character {
+		position: absolute;
+		inset: 0;
+		flex: none;
+	}
+
+	.dialogue-box {
+		flex: none;
+		width: 100%;
+		margin: 0;
+		border-width: 2px 0 0;
+		border-radius: 0;
+	}
 }
 
 /* ---------- Minimal fallback (complete / failed — not real scenes yet) ---------- */
@@ -383,6 +554,7 @@
 	position: relative;
 	max-width: 900px;
 	min-height: 100vh;
+	min-height: 100dvh;
 	margin: 0 auto;
 	display: flex;
 	flex-direction: column;
@@ -390,12 +562,20 @@
 	justify-content: center;
 	gap: 16px;
 	text-align: center;
-	padding: 24px;
+	padding: max(24px, calc(var(--chrome-inset) + var(--chrome-height) + 12px))
+		clamp(16px, 5vw, 24px) 24px;
 	box-sizing: border-box;
 }
 
 .fallback-scene h1 {
 	font-family: var(--font-display);
+	font-size: clamp(1.2rem, 4.5vw, 1.7rem);
+	text-wrap: balance;
+}
+
+/* The completed-run summary is one long "step → step → step" string. */
+.fallback-scene p {
+	overflow-wrap: anywhere;
 }
 
 .fallback-scene button {
@@ -406,4 +586,29 @@
 	border-radius: 8px;
 	padding: 10px 20px;
 	cursor: pointer;
+}
+
+/* ---------- Small screens: shrink the fixed chrome so it stops eating the
+   top of every scene ---------- */
+
+@media (max-width: 560px) {
+	.theme-root {
+		--chrome-inset: 10px;
+		--chrome-height: 36px;
+	}
+
+	.patience-meter {
+		gap: 8px;
+		padding: 7px 10px;
+		font-size: 0.7rem;
+	}
+
+	.patience-meter__pips {
+		gap: 4px;
+	}
+
+	.patience-meter__pip {
+		width: 10px;
+		height: 10px;
+	}
 }

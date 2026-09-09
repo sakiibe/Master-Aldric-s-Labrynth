@@ -50,6 +50,10 @@ export const theme: ThemeTokens = {
 		junctionArt: 'junction-default',
 	},
 
+	// One entry per painting in ui/art/registry.ts. A sixth scene, 'robe'
+	// ("I have tripped on this robe eleven times today. Also: wrong door."),
+	// is parked until its art exists — listing it here would put placeholder
+	// blobs in front of the player one dead end in five.
 	deadEndScenes: [
 		{
 			id: 'bath',
@@ -70,11 +74,6 @@ export const theme: ThemeTokens = {
 			id: 'cauldron',
 			art: 'aldric-cauldron',
 			line: 'That door was wrong, and now so is my reduction. Nine hours. NINE.',
-		},
-		{
-			id: 'robe',
-			art: 'aldric-robe',
-			line: 'I have tripped on this robe eleven times today. Also: wrong door.',
 		},
 	],
 

@@ -8,6 +8,7 @@ import { getCompleted } from './state/storage';
 import { useRun } from './state/useRun';
 import { SoundProvider } from './sound/SoundProvider';
 import { useSound } from './sound/useSound';
+import { preloadDeadEndPaintings } from './ui/art/registry';
 import { PatienceMeter } from './ui/components/PatienceMeter';
 import { SoundControl } from './ui/components/SoundControl';
 import { DeadEnd } from './ui/scenes/DeadEnd';
@@ -86,6 +87,13 @@ function WorkflowScreen({
 	const { playSfx } = useSound();
 	const { run, choose, backtrack, useHint, restart } = useRun(workflow);
 	useRunSounds(run);
+
+	// Fetch the dead-end art up front — a wrong door can land on any of the
+	// scenes with no warning, so decoding one on first sight would flash an
+	// empty frame under the dialogue box.
+	useEffect(() => {
+		preloadDeadEndPaintings();
+	}, []);
 
 	return (
 		<>

@@ -339,7 +339,7 @@ export interface ThemeTokens {
 		junctionArt: string;
 	};
 
-	/** The 5–6 randomized Aldric reactions for dead ends. */
+	/** The randomized Aldric reactions for dead ends, one per painted scene. */
 	deadEndScenes: DeadEndScene[];
 
 	/** Every Overworld district, keyed by job aid. */
