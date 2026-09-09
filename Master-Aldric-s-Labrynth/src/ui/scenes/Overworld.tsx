@@ -25,6 +25,8 @@ interface OverworldProps {
 	workflows: BuiltWorkflow[];
 	completed: WorkflowId[];
 	onSelect: (id: WorkflowId) => void;
+	/** Leave the map for the title screen. */
+	onExit: () => void;
 }
 
 const STAGE_W = 1920;
@@ -199,7 +201,12 @@ interface PlaqueInfo {
 
 /* ------------------------------------------------------------------ */
 
-export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
+export function Overworld({
+	workflows,
+	completed,
+	onSelect,
+	onExit,
+}: OverworldProps) {
 	const theme = useTheme();
 	const [scale, setScale] = useState(1);
 
@@ -426,6 +433,16 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
         .ow-hit { background: none; border: none; padding: 0; }
         .ow-hit:not(:disabled) { cursor: pointer; }
         .ow-hit:focus-visible { outline: 2px solid #caa14a; outline-offset: 4px; border-radius: 50%; }
+        .ow-back {
+          display: flex; align-items: center; gap: 9px;
+          padding: 9px 18px 9px 14px;
+          font: 600 12px Cinzel, serif; letter-spacing: 2.4px;
+          color: #caa14a; cursor: pointer;
+          background: #1b1230cc; border: 1.5px solid #caa14a;
+          transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+        }
+        .ow-back:hover, .ow-back:focus-visible { color: #f4ead6; background: #241a42; }
+        .ow-back:focus-visible { outline: 2px solid #caa14a; outline-offset: 3px; }
         @media (prefers-reduced-motion: no-preference) {
           .ow-twinkle { animation: ow-tw var(--dur) ease-in-out var(--delay) infinite; }
           .ow-smoke { animation: ow-drift 7s ease-out infinite; }
@@ -996,6 +1013,33 @@ export function Overworld({ workflows, completed, onSelect }: OverworldProps) {
 				    stone launches its workflow; cleared stones re-play; sealed
 				    stones are inert. */}
 				<div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+					{/* Back to the title screen. Bottom-left is the one corner of the
+					    map no house, trail or plaque reaches, and it keeps the exit
+					    away from the wordmark and the progress readout. */}
+					<button
+						type="button"
+						className="ow-back"
+						onClick={onExit}
+						style={{
+							position: 'absolute',
+							left: 56,
+							top: 970,
+							pointerEvents: 'auto',
+						}}
+					>
+						<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+							<path
+								d="M10,2 L4,8 L10,14"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							/>
+						</svg>
+						MAIN MENU
+					</button>
+
 					{nodes.map((n) => (
 						<button
 							key={n.key}

@@ -10,8 +10,11 @@ interface JunctionProps {
 	hintedSteps: StepId[];
 	hintsRemaining: number;
 	taken: TakenStep[];
+	/** Where ending the run goes back to — the trail map or the ladder. */
+	returnLabel: string;
 	onChoose: (doorId: DoorId) => void;
 	onHint: () => void;
+	onEndRun: () => void;
 }
 
 /**
@@ -22,14 +25,20 @@ interface JunctionProps {
  * which the state layer resolves through `engine.choose()` — a correct pick
  * moves `run.stepId` to the next step, which re-renders this component for
  * the new room.
+ *
+ * "End run" leaves mid-workflow. It needs no confirmation: `useRun` persists
+ * every junction, so walking out keeps the run where it stands and re-opening
+ * the workflow resumes it.
  */
 export function Junction({
 	step,
 	hintedSteps,
 	hintsRemaining,
 	taken,
+	returnLabel,
 	onChoose,
 	onHint,
+	onEndRun,
 }: JunctionProps) {
 	const theme = useTheme();
 	const hinted = hintedSteps.includes(step.id);
@@ -62,6 +71,14 @@ export function Junction({
 					alreadyHinted={hinted}
 					onUse={onHint}
 				/>
+				<button
+					type="button"
+					className="end-run-button"
+					onClick={onEndRun}
+					title={`End run — return to ${returnLabel}`}
+				>
+					End run
+				</button>
 			</div>
 
 			<PathTrail taken={taken} />

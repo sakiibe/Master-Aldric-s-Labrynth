@@ -133,8 +133,10 @@ function WorkflowScreen({
 					hintedSteps={run.hintedSteps}
 					hintsRemaining={run.hintsRemaining}
 					taken={run.taken}
+					returnLabel={returnLabel}
 					onChoose={choose}
 					onHint={useHint}
+					onEndRun={onReturnToOverworld}
 				/>
 			)}
 
@@ -226,6 +228,15 @@ function Game() {
 	}, [playSfx]);
 
 	/**
+	 * Leaving a home screen for the title. Progress is already on disk, so
+	 * this only unwinds the scene — nothing to save on the way out.
+	 */
+	const returnToTitle = useCallback(() => {
+		playSfx('click');
+		setScene({ name: 'title' });
+	}, [playSfx]);
+
+	/**
 	 * Opening a workflow. From the map, the first workflow of a district
 	 * plays that district's briefing first — Aldric naming the house he wants
 	 * taught. Once per district, not once per workflow: the same demand in
@@ -298,6 +309,7 @@ function Game() {
 				workflows={builtWorkflows}
 				completed={completed}
 				onSelect={selectWorkflow}
+				onExit={returnToTitle}
 			/>
 		);
 	}
@@ -308,6 +320,7 @@ function Game() {
 				workflows={builtWorkflows}
 				completed={completed}
 				onSelect={selectWorkflow}
+				onExit={returnToTitle}
 			/>
 		);
 	}

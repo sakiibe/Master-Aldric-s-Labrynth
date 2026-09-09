@@ -33,6 +33,8 @@ interface OverworldLadderProps {
 	workflows: BuiltWorkflow[];
 	completed: WorkflowId[];
 	onSelect: (id: WorkflowId) => void;
+	/** Leave the ladder for the title screen. */
+	onExit: () => void;
 }
 
 const STAGE_W = 1920;
@@ -70,6 +72,7 @@ export function OverworldLadder({
 	workflows,
 	completed,
 	onSelect,
+	onExit,
 }: OverworldLadderProps) {
 	const theme = useTheme();
 	const [scale, setScale] = useState(1);
@@ -640,6 +643,29 @@ export function OverworldLadder({
 					>
 						All rites unsealed — climb any rung, in any order
 					</div>
+
+					{/* Back to the title screen, in the strip below the ladder feet and
+					    on the caption's baseline. Rendered AFTER the caption: that div
+					    is full-width, so in DOM order before it, it would swallow the
+					    button's clicks. */}
+					<button
+						type="button"
+						className="lr-back"
+						onClick={onExit}
+						style={{ position: 'absolute', left: 56, bottom: 27 }}
+					>
+						<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+							<path
+								d="M10,2 L4,8 L10,14"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							/>
+						</svg>
+						MAIN MENU
+					</button>
 				</div>
 			</div>
 		</div>
@@ -695,4 +721,14 @@ const CSS = `
   }
   .lr-rung:hover .lr-dot, .lr-rung:focus-visible .lr-dot { box-shadow: 0 0 15px #ffd79a; }
   .lr-check { transition: box-shadow 160ms ease; }
+  .lr-back {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 18px 9px 14px;
+    font: 600 12px Cinzel, serif; letter-spacing: 2.4px;
+    color: #caa14a; cursor: pointer;
+    background: #1b1230cc; border: 1.5px solid #caa14a;
+    transition: color 160ms ease, background 160ms ease;
+  }
+  .lr-back:hover, .lr-back:focus-visible { color: #f4ead6; background: #241a42; }
+  .lr-back:focus-visible { outline: 2px solid #caa14a; outline-offset: 3px; }
 `;
