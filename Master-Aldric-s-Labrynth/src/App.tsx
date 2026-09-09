@@ -176,6 +176,8 @@ function Game() {
 		// the engine has no separate free-play flow yet.
 		return (
 			<TitleScreen
+				mastered={completed.length}
+				total={builtWorkflows.length}
 				onStoryMode={() => setScene({ name: 'overworld' })}
 				onFreePlay={() => setScene({ name: 'overworld' })}
 			/>

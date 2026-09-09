@@ -30,6 +30,10 @@ interface TitleScreenProps {
 	onStoryMode: () => void;
 	/** FREE PLAY — wander any maze, no consequence. */
 	onFreePlay: () => void;
+	/** Recipes cleared, for the mastery plate. */
+	mastered: number;
+	/** Total recipes in the game. */
+	total: number;
 }
 
 const ART = '/art/title-scene.png';
@@ -266,7 +270,12 @@ const FREE = {
 
 type Overlay = 'howto' | 'settings' | null;
 
-export function TitleScreen({ onStoryMode, onFreePlay }: TitleScreenProps) {
+export function TitleScreen({
+	onStoryMode,
+	onFreePlay,
+	mastered,
+	total,
+}: TitleScreenProps) {
 	const [overlay, setOverlay] = useState<Overlay>(null);
 	const closeRef = useRef<HTMLButtonElement>(null);
 	const { playSfx } = useSound();
@@ -535,6 +544,8 @@ export function TitleScreen({ onStoryMode, onFreePlay }: TitleScreenProps) {
 
 			{/* Layer 11 — menu UI (the only interactive layer) */}
 			<div className="ts-uiRise" style={menuStyle}>
+				<MasteryPlate mastered={mastered} total={total} />
+
 				<div style={primaryRowStyle}>
 					<PrimaryButton
 						palette={STORY}
@@ -754,6 +765,52 @@ export function TitleScreen({ onStoryMode, onFreePlay }: TitleScreenProps) {
 
 /* ------------------------------------------------------------------ */
 
+/**
+ * The mastery plate — a small ledger card above the mode buttons showing how
+ * many recipes have been cleared, with a themed gold progress bar. Reflects
+ * the single shared `completed` list (Story and Free Play are one flow), so it
+ * is the game's only progress readout. The bar brightens to a fuller gold once
+ * every recipe is done.
+ */
+interface MasteryPlateProps {
+	mastered: number;
+	total: number;
+}
+
+function MasteryPlate({ mastered, total }: MasteryPlateProps) {
+	const pct = total > 0 ? (mastered / total) * 100 : 0;
+	const complete = total > 0 && mastered >= total;
+
+	return (
+		<div style={plateStyle}>
+			<div style={plateHeaderStyle}>
+				<span style={plateLabelStyle}>Recipes Mastered</span>
+				<span style={plateCountStyle}>
+					{mastered} / {total}
+				</span>
+			</div>
+			<div style={plateTrackStyle}>
+				<div
+					style={{
+						height: '100%',
+						width: `${pct}%`,
+						borderRadius: 'inherit',
+						background: complete
+							? 'linear-gradient(90deg, #e8cf8f, #fff3d0)'
+							: 'linear-gradient(90deg, #caa14a, #f6e6bd)',
+						boxShadow: complete
+							? '0 0 14px rgba(255,236,190,0.75)'
+							: '0 0 10px rgba(232,207,143,0.5)',
+						transition: 'width 600ms cubic-bezier(0.16,1,0.3,1)',
+					}}
+				/>
+			</div>
+		</div>
+	);
+}
+
+/* ------------------------------------------------------------------ */
+
 interface PrimaryButtonProps {
 	palette: typeof STORY;
 	label: string;
@@ -915,6 +972,54 @@ const menuStyle: React.CSSProperties = {
 	alignItems: 'center',
 	gap: 20,
 	padding: '0 24px 38px',
+};
+
+/* Mastery plate (§Menu UI → progress readout) */
+const plateStyle: React.CSSProperties = {
+	width: 'min(320px, 100%)',
+	padding: '10px 16px 12px',
+	borderRadius: 6,
+	border: '1px solid rgba(232,207,143,0.45)',
+	background:
+		'linear-gradient(180deg, rgba(36,22,60,0.72), rgba(20,12,36,0.72))',
+	boxShadow:
+		'inset 0 1px 0 rgba(255,236,190,0.18), 0 8px 24px rgba(0,0,0,0.5)',
+	backdropFilter: 'blur(3px)',
+};
+
+const plateHeaderStyle: React.CSSProperties = {
+	display: 'flex',
+	alignItems: 'baseline',
+	justifyContent: 'space-between',
+	gap: 12,
+	marginBottom: 8,
+};
+
+const plateLabelStyle: React.CSSProperties = {
+	fontFamily: "'Cinzel', serif",
+	fontSize: 11,
+	fontWeight: 600,
+	letterSpacing: '0.18em',
+	textTransform: 'uppercase',
+	color: '#e8cf8f',
+};
+
+const plateCountStyle: React.CSSProperties = {
+	fontFamily: "'Cinzel', serif",
+	fontSize: 13,
+	fontWeight: 700,
+	letterSpacing: '0.06em',
+	color: '#f6e6bd',
+	textShadow: '0 0 12px rgba(190,140,255,0.4)',
+};
+
+const plateTrackStyle: React.CSSProperties = {
+	height: 6,
+	borderRadius: 3,
+	overflow: 'hidden',
+	background: 'rgba(8,4,16,0.7)',
+	border: '1px solid rgba(232,207,143,0.22)',
+	boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.6)',
 };
 
 const primaryRowStyle: React.CSSProperties = {

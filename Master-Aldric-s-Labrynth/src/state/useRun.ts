@@ -23,6 +23,17 @@ function initialRun(workflow: BuiltWorkflow): RunState {
 	return engineProgress(engineRestart(workflow));
 }
 
+/**
+ * Whether a persisted run still fits the current workflow. Content edits
+ * between deploys can leave a saved `stepId` naming a step that no longer
+ * exists — the one stored id dereferenced against `byId` at runtime, so a
+ * stale one crashes a resumed run. Stale runs are discarded for a fresh one;
+ * the completed list is untouched.
+ */
+function isResumable(workflow: BuiltWorkflow, run: RunState): boolean {
+	return run.stepId in workflow.byId;
+}
+
 export interface UseRunResult {
 	run: RunState;
 	choose: (doorId: DoorId) => void;
@@ -34,7 +45,11 @@ export interface UseRunResult {
 export function useRun(workflow: BuiltWorkflow): UseRunResult {
 	const [run, setRun] = useState<RunState>(() => {
 		const persisted = loadProgress().runs[workflow.id];
-		return persisted ?? initialRun(workflow);
+		// A stale run falls through to a fresh one, which the persist effect
+		// then writes back, overwriting the stale entry in storage.
+		return persisted && isResumable(workflow, persisted)
+			? persisted
+			: initialRun(workflow);
 	});
 
 	useEffect(() => {
