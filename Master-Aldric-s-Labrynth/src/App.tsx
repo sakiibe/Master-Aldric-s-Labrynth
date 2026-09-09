@@ -1,10 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { buildWorkflow } from './game/buildWorkflow';
 import { workflows as workflowDefs } from './game/data';
-import type { BuiltWorkflow, RunState, WorkflowId } from './game/types';
+import type {
+	BuiltWorkflow,
+	JobAidId,
+	RunState,
+	WorkflowId,
+} from './game/types';
 import { ThemeProvider } from './state/ThemeContext';
 import { useTheme } from './state/useTheme';
 import { getCompleted } from './state/storage';
+import {
+	hasBriefed,
+	hasSeenFinale,
+	markBriefed,
+	markFinaleSeen,
+} from './state/storyStorage';
 import { useRun } from './state/useRun';
 import { SoundProvider } from './sound/SoundProvider';
 import { useSound } from './sound/useSound';
@@ -15,6 +26,7 @@ import { DeadEnd } from './ui/scenes/DeadEnd';
 import { Junction } from './ui/scenes/Junction';
 import { Overworld } from './ui/scenes/Overworld';
 import { OverworldLadder } from './ui/scenes/OverworldLadder';
+import { StoryScene } from './ui/scenes/StoryScene';
 import { TitleScreen } from './ui/scenes/TitleScreen';
 import './ui/styles/game.css';
 
@@ -30,11 +42,24 @@ const workflowsById: Record<WorkflowId, BuiltWorkflow> = Object.fromEntries(
  */
 type HomeScene = 'overworld' | 'ladder';
 
+/**
+ * Story Mode wraps the workflows in Aldric's hostage plot; Free Play does
+ * not. Every story scene therefore carries `from`, and any scene launched
+ * from the ladder skips the plot entirely.
+ *
+ * - `prologue` plays on entering Story Mode, before the map.
+ * - `briefing` plays the first time a district's workflow is opened, and
+ *   hands straight off to that workflow.
+ * - `finale` plays on returning to the map with all 48 complete.
+ */
 type Scene =
 	| { name: 'title' }
+	| { name: 'prologue' }
 	| { name: 'overworld' }
 	| { name: 'ladder' }
-	| { name: 'workflow'; id: WorkflowId; from: HomeScene };
+	| { name: 'briefing'; jobAid: JobAidId; id: WorkflowId; from: HomeScene }
+	| { name: 'workflow'; id: WorkflowId; from: HomeScene }
+	| { name: 'finale' };
 
 interface WorkflowScreenProps {
 	workflow: BuiltWorkflow;
@@ -165,32 +190,58 @@ function Game() {
 	const { playMusic, playSfx } = useSound();
 
 	// Swap the looping music bed to match the current scene: the mozart menu
-	// track on the title screen, the lab bed on either home screen, and the
+	// track on the title screen, the lab bed on either home screen and over
+	// the story scenes (all of which play in Aldric's laboratory), and the
 	// junction bed inside a workflow.
 	useEffect(() => {
 		const bed =
 			scene.name === 'title'
 				? 'menu'
-				: scene.name === 'overworld' || scene.name === 'ladder'
-					? 'overworld'
-					: 'junction';
+				: scene.name === 'workflow'
+					? 'junction'
+					: 'overworld';
 		playMusic(bed);
 	}, [scene.name, playMusic]);
 
+	/**
+	 * Leaving a workflow. In Story Mode, finishing the last of the 48 earns
+	 * the ending — checked against freshly-read progress rather than the
+	 * `completed` state, which this call is what refreshes.
+	 */
 	const returnToOverworld = useCallback(() => {
 		playSfx('click');
-		setCompleted(getCompleted());
-		setScene((s) => ({ name: s.name === 'workflow' ? s.from : 'overworld' }));
+		const done = getCompleted();
+		setCompleted(done);
+		setScene((s) => {
+			const home = s.name === 'workflow' ? s.from : 'overworld';
+			if (
+				home === 'overworld' &&
+				done.length >= builtWorkflows.length &&
+				!hasSeenFinale()
+			) {
+				return { name: 'finale' };
+			}
+			return { name: home };
+		});
 	}, [playSfx]);
 
+	/**
+	 * Opening a workflow. From the map, the first workflow of a district
+	 * plays that district's briefing first — Aldric naming the house he wants
+	 * taught. Once per district, not once per workflow: the same demand in
+	 * front of all twelve would wear through fast.
+	 */
 	const selectWorkflow = useCallback(
 		(id: WorkflowId) => {
 			playSfx('click');
-			setScene((s) => ({
-				name: 'workflow',
-				id,
-				from: s.name === 'ladder' ? 'ladder' : 'overworld',
-			}));
+			setScene((s) => {
+				const from: HomeScene = s.name === 'ladder' ? 'ladder' : 'overworld';
+				const { jobAid } = workflowsById[id];
+				if (from === 'overworld' && !hasBriefed(jobAid)) {
+					return { name: 'briefing', jobAid, id, from };
+				}
+				return { name: 'workflow', id, from };
+			});
 		},
 		[playSfx],
 	);
@@ -198,8 +249,45 @@ function Game() {
 	if (scene.name === 'title') {
 		return (
 			<TitleScreen
-				onStoryMode={() => setScene({ name: 'overworld' })}
+				onStoryMode={() => setScene({ name: 'prologue' })}
 				onFreePlay={() => setScene({ name: 'ladder' })}
+			/>
+		);
+	}
+
+	if (scene.name === 'prologue') {
+		return (
+			<StoryScene
+				beats={theme.story.prologue}
+				finishLabel={`Enter ${theme.labels.overworld}`}
+				onFinish={() => setScene({ name: 'overworld' })}
+			/>
+		);
+	}
+
+	if (scene.name === 'briefing') {
+		const { jobAid, id, from } = scene;
+		return (
+			<StoryScene
+				beats={theme.story.briefings[jobAid]}
+				finishLabel="Get on with it"
+				onFinish={() => {
+					markBriefed(jobAid);
+					setScene({ name: 'workflow', id, from });
+				}}
+			/>
+		);
+	}
+
+	if (scene.name === 'finale') {
+		return (
+			<StoryScene
+				beats={theme.story.finale}
+				finishLabel="Go home"
+				onFinish={() => {
+					markFinaleSeen();
+					setScene({ name: 'overworld' });
+				}}
 			/>
 		);
 	}
