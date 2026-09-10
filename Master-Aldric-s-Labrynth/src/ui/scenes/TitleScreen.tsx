@@ -275,19 +275,34 @@ export function TitleScreen({
 	total,
 }: TitleScreenProps) {
 	const [overlay, setOverlay] = useState<Overlay>(null);
+	// The overlay animates out, so closing is a two-step: `closing` starts the
+	// exit animation while the panel stays mounted; the effect below drops it
+	// once the animation has run.
+	const [closing, setClosing] = useState(false);
 	const closeRef = useRef<HTMLButtonElement>(null);
 	const { playSfx } = useSound();
 
-	// Return focus and allow Escape to dismiss whichever overlay is open.
+	// Return focus and allow Escape to begin the overlay's exit.
 	useEffect(() => {
 		if (!overlay) return;
 		closeRef.current?.focus();
 		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') setOverlay(null);
+			if (e.key === 'Escape') setClosing(true);
 		};
 		window.addEventListener('keydown', onKey);
 		return () => window.removeEventListener('keydown', onKey);
 	}, [overlay]);
+
+	// Once the exit animation has run, unmount the overlay. Reopening cancels
+	// this (the cleanup clears the timer when `closing` flips back to false).
+	useEffect(() => {
+		if (!closing) return;
+		const t = setTimeout(() => {
+			setOverlay(null);
+			setClosing(false);
+		}, 160);
+		return () => clearTimeout(t);
+	}, [closing]);
 
 	return (
 		<div style={rootStyle}>
@@ -603,6 +618,7 @@ export function TitleScreen({
 						label="HOW TO PLAY"
 						onClick={() => {
 							playSfx('click');
+							setClosing(false);
 							setOverlay('howto');
 						}}
 					>
@@ -632,6 +648,7 @@ export function TitleScreen({
 						label="SETTINGS"
 						onClick={() => {
 							playSfx('click');
+							setClosing(false);
 							setOverlay('settings');
 						}}
 					>
@@ -711,16 +728,33 @@ export function TitleScreen({
 					role="dialog"
 					aria-modal="true"
 					aria-label={overlay === 'howto' ? 'How to play' : 'Settings'}
-					style={overlayScrimStyle}
-					onClick={() => setOverlay(null)}
+					style={
+						closing
+							? {
+									...overlayScrimStyle,
+									animation: 'overlay-scrim-out 160ms ease-in forwards',
+								}
+							: overlayScrimStyle
+					}
+					onClick={() => setClosing(true)}
 				>
-					<div style={overlayPanelStyle} onClick={(e) => e.stopPropagation()}>
+					<div
+						style={
+							closing
+								? {
+										...overlayPanelStyle,
+										animation: 'overlay-panel-out 160ms ease-in forwards',
+									}
+								: overlayPanelStyle
+						}
+						onClick={(e) => e.stopPropagation()}
+					>
 						<button
 							ref={closeRef}
 							type="button"
 							onClick={() => {
 								playSfx('click');
-								setOverlay(null);
+								setClosing(true);
 							}}
 							style={overlayCloseStyle}
 							aria-label="Close"
@@ -1036,6 +1070,7 @@ const overlayScrimStyle: React.CSSProperties = {
 	padding: 24,
 	background: 'rgba(3,1,8,0.72)',
 	backdropFilter: 'blur(3px)',
+	animation: 'overlay-scrim-in 160ms ease-out',
 };
 
 const overlayPanelStyle: React.CSSProperties = {
@@ -1050,6 +1085,7 @@ const overlayPanelStyle: React.CSSProperties = {
 		'linear-gradient(180deg, rgba(36,22,60,0.98), rgba(20,12,36,0.98))',
 	boxShadow: 'inset 0 1px 0 rgba(255,236,190,0.2), 0 20px 60px rgba(0,0,0,0.6)',
 	color: '#e2d0ff',
+	animation: 'overlay-panel-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both',
 };
 
 const overlayTitleStyle: React.CSSProperties = {

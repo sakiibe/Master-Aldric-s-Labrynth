@@ -20,24 +20,23 @@ export function SoundControl() {
 		>
 			<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
 				<path fill="currentColor" d="M4 9v6h4l5 5V4L8 9H4z" />
-				{muted ? (
-					// A slash across the speaker when muted.
-					<path
-						stroke="currentColor"
-						strokeWidth="2"
-						strokeLinecap="round"
-						d="M16 8l5 8M21 8l-5 8"
-					/>
-				) : (
-					// Sound waves when on.
-					<path
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						strokeLinecap="round"
-						d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"
-					/>
-				)}
+				{/* Both marks are always present; CSS cross-fades between them on
+				    the button's aria-pressed state so mute/unmute isn't a hard cut. */}
+				<path
+					className="sound-control__slash"
+					stroke="currentColor"
+					strokeWidth="2"
+					strokeLinecap="round"
+					d="M16 8l5 8M21 8l-5 8"
+				/>
+				<path
+					className="sound-control__waves"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="2"
+					strokeLinecap="round"
+					d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"
+				/>
 			</svg>
 		</button>
 	);

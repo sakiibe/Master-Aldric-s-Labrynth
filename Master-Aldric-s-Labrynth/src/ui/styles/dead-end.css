@@ -6,6 +6,29 @@
    window. Nothing here is boxed to a fixed aspect — the art crops to
    whatever shape the viewport is. */
 
+/* Enter animations. The scene (painting + scrim) fades up on a wrong pick;
+   the dialogue box lifts in just behind it. Both are reused by the story
+   scenes, which share this staging. */
+@keyframes dead-end-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes dialogue-in {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
 .dead-end-scene {
 	position: relative;
 	z-index: 0;
@@ -17,6 +40,7 @@
 	min-height: 100vh;
 	min-height: 100dvh;
 	overflow: hidden;
+	animation: dead-end-in 260ms ease-out;
 }
 
 .dead-end-scene > * {
@@ -86,6 +110,7 @@
 	border-radius: 16px;
 	padding: clamp(16px, 2.8vw, 26px) clamp(18px, 3vw, 30px);
 	backdrop-filter: blur(2px);
+	animation: dialogue-in 200ms ease-out both;
 }
 
 .dialogue-speaker {

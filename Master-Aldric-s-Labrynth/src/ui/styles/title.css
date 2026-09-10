@@ -2,6 +2,50 @@
    atmosphere keyframes (lightning, smoke, embers, UI rise) and their
    driver classes; per-element anchors stay as inline style attrs. */
 
+/* How to Play / Settings overlay entrance — scrim fades, panel lifts a touch
+   into place. Applied via the inline overlay style objects in TitleScreen. */
+@keyframes overlay-scrim-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes overlay-panel-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* Exit — the reverse, held on the last frame (forwards) so the panel stays
+   faded out for the moment it lingers before React unmounts it. */
+@keyframes overlay-scrim-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes overlay-panel-out {
+	from {
+		opacity: 1;
+		transform: none;
+	}
+	to {
+		opacity: 0;
+		transform: translateY(8px) scale(0.98);
+	}
+}
+
 @keyframes ts-breathe {
 	0%,
 	100% {
