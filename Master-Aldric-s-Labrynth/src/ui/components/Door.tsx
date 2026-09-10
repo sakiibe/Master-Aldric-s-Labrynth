@@ -30,8 +30,8 @@ interface DoorProps {
 
 /**
  * A door is an INVISIBLE, arch-shaped hotspot laid over a door somebody
- * painted — the button contributes no art of its own, only the hover glow,
- * the sigil ring and the label plate.
+ * painted — the button contributes no art of its own, only the hover glow
+ * and the label plate.
  *
  * This inverts the old arrangement, where the button drew its own SVG archway
  * so the art and the hit region could never drift apart. With painted art
@@ -77,7 +77,6 @@ export function Door({
 			aria-label={hinted ? `${door.label} — the hint points here` : door.label}
 		>
 			<span className="jn-door__glow" aria-hidden="true" />
-			<span className="jn-door__ring" aria-hidden="true" />
 			{showHotspot && <span className="jn-door__trace" aria-hidden="true" />}
 
 			<span

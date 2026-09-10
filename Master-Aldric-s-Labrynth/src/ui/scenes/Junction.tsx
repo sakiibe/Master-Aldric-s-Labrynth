@@ -405,7 +405,6 @@ const CSS = `
     --jn-bloom: rgba(178, 96, 255, 0.55);
     --jn-fill: rgba(160, 78, 240, 0.28);
     --jn-inner: rgba(158, 74, 235, 0.45);
-    --jn-ring: rgba(216, 166, 255, 0.5);
     --jn-plate-edge: rgba(198, 150, 245, 0.55);
     --jn-plate: linear-gradient(180deg, rgba(46,26,68,.94), rgba(30,17,48,.94));
     --jn-lit-edge: rgba(233, 195, 255, 0.95);
@@ -475,7 +474,6 @@ const CSS = `
   }
 
   .jn-door__glow,
-  .jn-door__ring,
   .jn-door__trace,
   .jn-door__plate { pointer-events: none; }
 
@@ -504,24 +502,12 @@ const CSS = `
     box-shadow: 0 0 42px 8px var(--jn-hint), inset 0 0 52px 6px var(--jn-hint);
   }
 
-  /* Spun with the rotate PROPERTY, not a transform: the ring is centred by
-     its transform, and a rotate keyframe on that same property would replace
-     the centring and throw the ring off the arch. */
-  .jn-door__ring {
-    position: absolute;
-    left: 50%;
-    top: 55%;
-    width: 92%;
-    aspect-ratio: 1;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    border: 1px dashed var(--jn-ring);
-    animation: jn-sigil-spin 26s linear infinite;
-    opacity: 0;
-    transition: opacity 220ms ease;
-  }
-
-  .jn-door.is-lit .jn-door__ring { opacity: 0.85; }
+  /* The handoff put a slow-spinning dashed "sigil ring" here too. Dropped:
+     sized off the hotspot's WIDTH and forced square, it came out as a circle
+     far shorter than the arch it sat in, so it read as a stray ellipse
+     spilling past the stonework rather than a sigil inscribed on the door —
+     and the label plate covered its bottom third anyway. The arch glow marks
+     the hovered door on its own, and does it more cleanly. */
 
   .jn-door__trace {
     position: absolute;
@@ -656,8 +642,6 @@ const CSS = `
     50% { filter: brightness(1.35); }
   }
 
-  @keyframes jn-sigil-spin { from { rotate: 0deg; } to { rotate: 360deg; } }
-
   @keyframes jn-torch-bloom {
     0%   { transform: scale(1);                      opacity: 0.78; }
     18%  { transform: scale(1.14);                   opacity: 1; }
@@ -689,7 +673,6 @@ const CSS = `
      off leaves them exactly where they were. */
   @media (prefers-reduced-motion: reduce) {
     .jn-door__glow,
-    .jn-door__ring,
     .jn-torch__bloom,
     .jn-torch__core { animation: none; }
     .jn-ember { display: none; }
