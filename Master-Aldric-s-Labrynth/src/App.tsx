@@ -26,6 +26,7 @@ import { preloadJunctionRoom } from './ui/art/junctionRooms';
 import { preloadDeadEndPaintings } from './ui/art/registry';
 import { PatienceMeter } from './ui/components/PatienceMeter';
 import { SoundControl } from './ui/components/SoundControl';
+import { CompleteScene } from './ui/scenes/CompleteScene';
 import { DeadEnd } from './ui/scenes/DeadEnd';
 import { Junction } from './ui/scenes/Junction';
 import { Overworld } from './ui/scenes/Overworld';
@@ -193,13 +194,12 @@ function WorkflowScreen({
 			)}
 
 			{run.status === 'complete' && (
-				<div className="fallback-scene">
-					<h1>{workflow.title} — complete</h1>
-					<p>{run.taken.map((t) => t.label).join(' → ')}</p>
-					<button type="button" onClick={onReturnToOverworld}>
-						Return to {returnLabel}
-					</button>
-				</div>
+				<CompleteScene
+					workflow={workflow}
+					run={run}
+					returnLabel={returnLabel}
+					onReturn={onReturnToOverworld}
+				/>
 			)}
 		</>
 	);

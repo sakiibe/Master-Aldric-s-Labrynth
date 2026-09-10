@@ -1,0 +1,368 @@
+/* ---------- Recipe Mastered (the run-complete payoff) ----------
+
+   A centred illuminated certificate on the theme ground: a gold-edged card,
+   a wax seal stamped over its top edge, Aldric's outro, the learned recipe
+   inscribed as a numbered list, and a clean-run tally. Built from theme
+   tokens (surface + accent + correct) so it recolours with the rest of the
+   game; the only literals are the shadow/highlight blacks-and-whites that
+   give the card and the wax their pressed, foiled depth. */
+
+.complete-scene {
+	position: relative;
+	min-height: 100vh;
+	min-height: 100dvh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	padding: max(24px, calc(var(--chrome-inset) + var(--chrome-height) + 12px))
+		clamp(16px, 5vw, 24px) 32px;
+	background: var(--color-bg);
+}
+
+.complete-card {
+	position: relative;
+	width: min(820px, 100%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+	/* Room for the seal, which sits half above the top edge. */
+	margin-top: 44px;
+	padding: 52px clamp(22px, 4vw, 40px) clamp(22px, 3vw, 30px);
+	text-align: center;
+	border: 2px solid var(--color-accent);
+	border-radius: 16px;
+	background: linear-gradient(
+		180deg,
+		color-mix(in srgb, var(--color-surface) 96%, #fff 4%),
+		var(--color-surface)
+	);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 240, 205, 0.22),
+		inset 0 0 40px rgba(0, 0, 0, 0.35),
+		0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+/* A thin inner keyline, the way a real certificate is double-ruled. */
+.complete-card::before {
+	content: '';
+	position: absolute;
+	inset: 7px;
+	border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+	border-radius: 11px;
+	pointer-events: none;
+}
+
+/* ---- Wax seal ---- */
+
+.complete-seal {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 1;
+}
+
+.complete-seal__wax {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	/* Molten-gold wax: a bright centre falling to a darker milled rim. */
+	background: radial-gradient(
+		circle at 38% 32%,
+		color-mix(in srgb, var(--color-accent) 92%, #fff 8%) 0%,
+		var(--color-accent) 46%,
+		color-mix(in srgb, var(--color-accent) 62%, #000 38%) 100%
+	);
+	box-shadow:
+		inset 0 2px 3px rgba(255, 245, 215, 0.55),
+		inset 0 -3px 6px rgba(0, 0, 0, 0.45),
+		0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* The embossed sigil sits pressed into the wax. */
+.complete-seal__wax svg {
+	filter: drop-shadow(0 1px 0 rgba(255, 245, 215, 0.4));
+	opacity: 0.85;
+}
+
+/* ---- Two-column body ---- */
+
+.complete-body {
+	width: 100%;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: clamp(20px, 4vw, 40px);
+	align-items: center;
+}
+
+.complete-main {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 14px;
+	text-align: left;
+}
+
+/* Stacks to one column on a narrow viewport; centre the copy when it does. */
+@media (max-width: 620px) {
+	.complete-body {
+		grid-template-columns: 1fr;
+		gap: 20px;
+	}
+
+	.complete-main {
+		align-items: center;
+		text-align: center;
+	}
+}
+
+/* ---- Copy ---- */
+
+.complete-kicker {
+	font-family: var(--font-display);
+	font-size: clamp(0.7rem, 2.4vw, 0.8rem);
+	font-weight: 700;
+	letter-spacing: 0.28em;
+	text-transform: uppercase;
+	color: var(--color-accent);
+}
+
+.complete-title {
+	margin: 0;
+	font-family: var(--font-display);
+	font-size: clamp(1.35rem, 5vw, 2rem);
+	line-height: 1.15;
+	color: var(--color-ink);
+	text-wrap: balance;
+}
+
+.complete-flawless {
+	font-family: var(--font-ui);
+	font-size: clamp(0.72rem, 2.4vw, 0.82rem);
+	font-weight: 600;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--color-correct);
+	padding: 5px 14px;
+	border: 1px solid color-mix(in srgb, var(--color-correct) 55%, transparent);
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--color-correct) 14%, transparent);
+	box-shadow: 0 0 18px color-mix(in srgb, var(--color-correct) 30%, transparent);
+}
+
+/* ---- Learned recipe ---- */
+
+.complete-recipe {
+	width: 100%;
+}
+
+.complete-recipe__label {
+	font-family: var(--font-ui);
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: var(--color-ink-muted);
+	margin-bottom: 10px;
+}
+
+.complete-recipe__list {
+	list-style: none;
+	counter-reset: recipe;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	text-align: left;
+	/* The one part of the card whose height varies with the recipe (3–13
+	   steps). Cap it to the viewport and let ONLY this panel scroll, so the
+	   longest recipes never push the whole page into a scroll on a short
+	   screen; short recipes never reach the cap. overflow-x is pinned hidden
+	   so it can't gain a horizontal bar. */
+	max-height: 52vh;
+	overflow-y: auto;
+	overflow-x: hidden;
+	/* Keep the scrollbar off the row text when it does appear. */
+	padding-right: 4px;
+}
+
+.complete-recipe__step {
+	counter-increment: recipe;
+	position: relative;
+	padding: 8px 12px 8px 40px;
+	font-family: var(--font-ui);
+	font-size: clamp(0.85rem, 2.6vw, 0.95rem);
+	line-height: 1.3;
+	color: var(--color-ink);
+	background: color-mix(in srgb, var(--color-bg) 45%, transparent);
+	border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+	border-radius: 8px;
+}
+
+/* Numbered medallion in the accent gold. */
+.complete-recipe__step::before {
+	content: counter(recipe);
+	position: absolute;
+	left: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 22px;
+	height: 22px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: var(--font-display);
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: var(--color-bg);
+	background: var(--color-accent);
+	border-radius: 50%;
+}
+
+/* ---- Tally ---- */
+
+.complete-stats {
+	display: flex;
+	gap: 14px;
+	margin-top: 4px;
+}
+
+.complete-stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-width: 84px;
+	padding: 10px 16px;
+	border: 1px solid color-mix(in srgb, var(--color-accent) 28%, transparent);
+	border-radius: 10px;
+	background: color-mix(in srgb, var(--color-bg) 40%, transparent);
+}
+
+.complete-stat__num {
+	font-family: var(--font-display);
+	font-size: clamp(1.3rem, 4vw, 1.6rem);
+	font-weight: 700;
+	color: var(--color-accent);
+}
+
+.complete-stat__label {
+	font-family: var(--font-ui);
+	font-size: 0.68rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--color-ink-muted);
+}
+
+/* ---- Return ---- */
+
+.complete-return {
+	margin-top: 8px;
+	background: var(--color-surface);
+	border: 1.5px solid var(--color-accent);
+	color: var(--color-ink);
+	font-family: var(--font-ui);
+	font-size: clamp(0.9rem, 2.6vw, 1rem);
+	border-radius: 8px;
+	padding: 11px 24px;
+	cursor: pointer;
+	transition:
+		background 200ms ease,
+		transform 200ms ease;
+}
+
+.complete-return:hover,
+.complete-return:focus-visible {
+	background: color-mix(in srgb, var(--color-surface) 80%, var(--color-accent));
+	transform: translateY(-2px);
+}
+
+/* ---- Animation (added by the component only when motion is allowed) ----
+   The card fades up; the seal drops in and stamps with an overshoot, throwing
+   a one-shot impact ring; the recipe steps stagger in (their per-step delay is
+   set inline). Nothing here plays under reduce-motion — the component drops
+   the .is-animated class, and every element's resting state is its final one. */
+
+.complete-card.is-animated {
+	animation: complete-card-in 420ms ease-out both;
+}
+
+.complete-card.is-animated .complete-seal {
+	animation: complete-seal-stamp 520ms cubic-bezier(0.34, 1.4, 0.5, 1) both;
+}
+
+/* The impact ring — expands and fades once as the seal lands. */
+.complete-card.is-animated .complete-seal::after {
+	content: '';
+	position: absolute;
+	inset: -6px;
+	border-radius: 50%;
+	border: 2px solid color-mix(in srgb, var(--color-accent) 70%, transparent);
+	animation: complete-seal-ring 620ms ease-out 220ms both;
+}
+
+.complete-card.is-animated .complete-recipe__step {
+	animation: complete-step-in 340ms ease-out both;
+}
+
+@keyframes complete-card-in {
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes complete-seal-stamp {
+	0% {
+		opacity: 0;
+		transform: translate(-50%, -180%) scale(1.8) rotate(-12deg);
+	}
+	55% {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(0.9) rotate(2deg);
+	}
+	100% {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1) rotate(0deg);
+	}
+}
+
+@keyframes complete-seal-ring {
+	from {
+		opacity: 0.8;
+		transform: scale(0.7);
+	}
+	to {
+		opacity: 0;
+		transform: scale(1.9);
+	}
+}
+
+@keyframes complete-step-in {
+	from {
+		opacity: 0;
+		transform: translateX(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* On a short/phone viewport the certificate scrolls rather than being clipped
+   or forcing the seal off the top of the screen. */
+@media (max-height: 720px), (max-width: 480px) {
+	.complete-scene {
+		align-items: flex-start;
+		overflow-y: auto;
+	}
+}
