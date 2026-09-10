@@ -71,15 +71,20 @@
 	/* Capped at a readable measure rather than tracking the window — on a
      wide monitor a full-width box would run Aldric's rule out to 1800px of
      single-line text. */
-	width: min(920px, 100% - clamp(20px, 5vw, 80px));
+	width: min(1180px, 100% - clamp(20px, 5vw, 64px));
+	/* A long rule at this type size can outgrow a short landscape window.
+     Cap it and let it scroll rather than push its own action button off
+     the bottom of the screen, where nothing could reach it. */
+	max-height: 72dvh;
+	overflow-y: auto;
 	margin-bottom: clamp(16px, 5vh, 48px);
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 10px;
 	background: color-mix(in srgb, var(--color-surface) 92%, transparent);
 	border: 2px solid var(--color-accent);
-	border-radius: 14px;
-	padding: clamp(12px, 2.2vw, 18px) clamp(14px, 2.4vw, 20px);
+	border-radius: 16px;
+	padding: clamp(16px, 2.8vw, 26px) clamp(18px, 3vw, 30px);
 	backdrop-filter: blur(2px);
 }
 
@@ -87,14 +92,14 @@
 	font-family: var(--font-display);
 	font-weight: 700;
 	color: var(--color-accent);
-	font-size: clamp(0.85rem, 2.6vw, 0.95rem);
+	font-size: clamp(1rem, 3vw, 1.2rem);
 }
 
 .dialogue-line {
 	margin: 0;
 	font-family: var(--font-body);
-	font-size: clamp(0.85rem, 2.6vw, 0.95rem);
-	min-height: 1.4em;
+	font-size: clamp(1.05rem, 3.2vw, 1.35rem);
+	line-height: 1.5;
 }
 
 .dialogue-rule {
@@ -102,14 +107,15 @@
 	font-family: var(--font-body);
 	font-weight: 600;
 	color: var(--color-accent);
-	font-size: clamp(0.82rem, 2.5vw, 0.9rem);
+	font-size: clamp(0.95rem, 2.9vw, 1.15rem);
+	line-height: 1.45;
 }
 
 .dialogue-citation {
 	margin: 0;
 	font-family: var(--font-ui);
 	font-style: italic;
-	font-size: 0.75rem;
+	font-size: clamp(0.8rem, 2.2vw, 0.9rem);
 	color: var(--color-ink-muted);
 	overflow-wrap: anywhere;
 }
@@ -123,7 +129,7 @@
 	padding: 10px 8px;
 	color: var(--color-ink-muted);
 	font-family: var(--font-ui);
-	font-size: 0.85rem;
+	font-size: clamp(0.9rem, 2.6vw, 1.05rem);
 	cursor: pointer;
 }
 
@@ -181,5 +187,10 @@
 		margin: 0;
 		border-width: 2px 0 0;
 		border-radius: 0;
+		/* Tighter than the 72dvh the overlay uses: here the box is stacked
+       ABOVE the art rather than laid over it, and the art below holds a
+       34dvh floor. 62 + 34 leaves the pair inside the viewport, so a long
+       rule scrolls within the box instead of being clipped by the stage. */
+		max-height: 62dvh;
 	}
 }
