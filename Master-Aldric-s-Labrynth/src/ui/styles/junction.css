@@ -70,6 +70,9 @@
 		rgba(52, 26, 84, 0.95)
 	);
 	--jn-hint: color-mix(in srgb, var(--color-correct) 60%, transparent);
+	/* Celebration green — brighter and a touch minty, so a correct pick reads
+	   as its own flourish rather than a louder version of the steady hint. */
+	--jn-correct: color-mix(in srgb, var(--color-correct) 62%, #e2fff0);
 
 	/* z-index:0 rather than plain position:relative, so the layers below
        stack against this box and not the document root. */
@@ -593,4 +596,86 @@
 	flex: none;
 	font-size: 13px;
 	color: var(--color-ink-muted);
+}
+
+/* ---- Correct-pick celebration ----
+   The chosen door flares in the brighter celebration green and pulses once,
+   then a burst of glowing green globs flies outward from its centre. Both are
+   mounted only for the celebration window (App holds the advance ~500ms), so
+   they clear themselves; reduce-motion skips the whole beat upstream. */
+
+.jn-door.is-correct .jn-door__glow {
+	opacity: 1;
+	border-color: var(--jn-correct);
+	background: radial-gradient(
+		ellipse at 50% 62%,
+		color-mix(in srgb, var(--jn-correct) 55%, transparent),
+		rgba(120, 50, 200, 0) 72%
+	);
+	box-shadow:
+		0 0 56px 12px color-mix(in srgb, var(--jn-correct) 70%, transparent),
+		inset 0 0 60px 8px color-mix(in srgb, var(--jn-correct) 52%, transparent);
+	animation: jn-correct-flare 500ms ease-out;
+}
+
+.jn-door.is-correct .jn-door__plate-lit {
+	opacity: 1;
+	border-color: var(--jn-correct);
+	box-shadow: 0 0 26px color-mix(in srgb, var(--jn-correct) 70%, transparent);
+}
+
+@keyframes jn-correct-flare {
+	0% {
+		filter: brightness(1);
+	}
+	22% {
+		filter: brightness(1.55);
+	}
+	100% {
+		filter: brightness(1);
+	}
+}
+
+/* Zero-size anchor at the door's centre; the globs fly out from here. */
+.jn-door__burst {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+.jn-glob {
+	position: absolute;
+	left: 0;
+	top: 0;
+	border-radius: 50%;
+	background: radial-gradient(
+		circle at 40% 38%,
+		var(--jn-correct),
+		color-mix(in srgb, var(--jn-correct) 40%, transparent) 68%,
+		transparent
+	);
+	box-shadow:
+		0 0 18px 4px color-mix(in srgb, var(--jn-correct) 80%, transparent),
+		0 0 7px color-mix(in srgb, var(--jn-correct) 95%, transparent);
+	/* Per-glob duration/delay come inline; this is the fallback + fill so it
+	   rests invisible if anything overrides oddly. */
+	animation: jn-glob-out 480ms ease-out forwards;
+}
+
+@keyframes jn-glob-out {
+	0% {
+		transform: translate(-50%, -50%) scale(0.3);
+		opacity: 0;
+	}
+	18% {
+		opacity: 1;
+	}
+	100% {
+		transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)))
+			scale(0.35);
+		opacity: 0;
+	}
 }

@@ -3,6 +3,7 @@ import type { BuiltStep, DoorId, StepId, TakenStep } from '../../game/types';
 import { useSound } from '../../sound/useSound';
 import { useTheme } from '../../state/useTheme';
 import { Door } from '../components/Door';
+import { useMotion } from '../../state/useMotion';
 import { HintButton } from '../components/HintButton';
 import { PathTrail } from '../components/PathTrail';
 import { Torch } from '../components/Torch';
@@ -65,6 +66,9 @@ const MODE_PADS = { top: 112, bot: 124 };
 const EMBERS_FULL = 14;
 /** Fewer particles once the stage is small — purely a fill-rate saving. */
 const EMBERS_COMPACT = 9;
+/** How long the correct door celebrates (green flare + glob burst) before the
+    junction advances. Skipped entirely under reduce-motion. */
+const CORRECT_ADVANCE_MS = 500;
 
 /**
  * The hotspots are invisible by construction, so there has to be some way to
@@ -132,6 +136,15 @@ export function Junction({
 	const [size, setSize] = useState({ vw: 1200, vh: 700 });
 	const [bands, setBands] = useState({ top: 0, bot: 0 });
 	const [hover, setHover] = useState(-1);
+	const { reduceMotion } = useMotion();
+	const [celebrate, setCelebrate] = useState<{
+		stepId: StepId;
+		index: number;
+	} | null>(null);
+	// A pending correct-pick advance, and a guard so a second click during the
+	// celebration can't fire a second pick.
+	const advanceRef = useRef<number | null>(null);
+	const pendingRef = useRef(false);
 	// Tagged with the step it was made at, rather than cleared when the step
 	// changes: a correct pick advances the junction and a backtrack returns to
 	// it, and a selection carried across either one would leave the room the
@@ -140,6 +153,16 @@ export function Junction({
 		null,
 	);
 	const picked = pick && pick.stepId === step.id ? pick.index : -1;
+	const celebrating =
+		celebrate && celebrate.stepId === step.id ? celebrate.index : -1;
+
+	// If the scene unmounts mid-celebration (End Run, backtrack), drop the
+	// pending advance so the delayed onChoose can't fire after we're gone.
+	useEffect(() => {
+		return () => {
+			if (advanceRef.current) clearTimeout(advanceRef.current);
+		};
+	}, []);
 
 	// Every door in full mode is an invisible hotspot over the painting, so if
 	// the painting doesn't load there is nothing on screen to click and the
@@ -264,10 +287,26 @@ export function Junction({
 	 * after the engine has decided.
 	 */
 	const choose = (index: number, doorId: DoorId) => {
+		if (pendingRef.current) return;
 		playSfx('door');
 		setPick({ stepId: step.id, index });
 		setHover(-1);
-		onChoose(doorId);
+
+		// A correct pick celebrates on the door — green flare + glob burst —
+		// then advances after a beat. This fires whether or not the door was
+		// hinted, so taking a hint's answer still gets the flourish. A wrong
+		// pick (or reduce-motion) advances at once, as before.
+		const isCorrect = step.doors[index].kind === 'correct';
+		if (isCorrect && !reduceMotion) {
+			pendingRef.current = true;
+			setCelebrate({ stepId: step.id, index });
+			advanceRef.current = window.setTimeout(() => {
+				pendingRef.current = false;
+				onChoose(doorId);
+			}, CORRECT_ADVANCE_MS);
+		} else {
+			onChoose(doorId);
+		}
 	};
 
 	return (
@@ -304,6 +343,7 @@ export function Junction({
 									listed={compact}
 									onSelect={(id) => choose(i, id)}
 									onHoverChange={(on) => setHover(on ? i : -1)}
+									celebrating={celebrating === i}
 								/>
 							))}
 
