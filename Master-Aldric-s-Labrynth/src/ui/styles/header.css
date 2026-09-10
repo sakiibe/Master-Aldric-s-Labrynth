@@ -1,9 +1,17 @@
-/* ---------- Patience meter (shared header, pinned top-right) ---------- */
+/* ---------- Patience meter (shared header, pinned top-right) ----------
+
+   Both fixed widgets share --chrome-inset so scenes can reserve exactly
+   enough top padding to clear them at any width (see .junction-scene). */
+
+.theme-root {
+	--chrome-inset: 24px;
+	--chrome-height: 40px;
+}
 
 .patience-meter {
 	position: fixed;
-	top: 24px;
-	right: 24px;
+	top: var(--chrome-inset);
+	right: var(--chrome-inset);
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -20,13 +28,13 @@
 /* Sound toggle — fixed top-left, mirroring the patience meter's placement. */
 .sound-control {
 	position: fixed;
-	top: 24px;
-	left: 24px;
+	top: var(--chrome-inset, 24px);
+	left: var(--chrome-inset, 24px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 40px;
-	height: 40px;
+	width: var(--chrome-height, 40px);
+	height: var(--chrome-height, 40px);
 	background: var(--color-surface);
 	border: 1.5px solid var(--color-accent);
 	border-radius: 10px;
@@ -79,4 +87,36 @@
 .patience-meter__pip--full {
 	background: var(--color-correct);
 	border-color: var(--color-correct);
+}
+
+/* ---------- Small screens: shrink the fixed chrome so it stops eating the
+   top of every scene ---------- */
+
+@media (max-width: 560px) {
+	.theme-root {
+		--chrome-inset: 10px;
+		--chrome-height: 36px;
+	}
+
+	.patience-meter {
+		gap: 8px;
+		padding: 7px 10px;
+		font-size: 0.7rem;
+	}
+
+	/* On a phone the junction's prompt and the meter are competing for the
+     same strip. The pips are the reading; the words in front of them are
+     the part that can go. */
+	.patience-meter__label {
+		display: none;
+	}
+
+	.patience-meter__pips {
+		gap: 4px;
+	}
+
+	.patience-meter__pip {
+		width: 10px;
+		height: 10px;
+	}
 }

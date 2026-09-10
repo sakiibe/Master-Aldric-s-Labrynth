@@ -1,0 +1,113 @@
+/* ---------- Story scenes (prologue / district briefings / finale) ----------
+
+   Reuses .dead-end-scene's staging wholesale — full-bleed painting, dialogue
+   box at the bottom — so the cutscenes read as the same tower as the game.
+   Only the advance affordances are new. */
+
+/* A painting shown whole rather than cropped (registry `fit: 'contain'`). */
+.dead-end-painting--contain {
+	object-fit: contain;
+}
+
+/* Scaled-up, blurred, dimmed copy of the same painting filling the space a
+   contained one leaves — cinema's answer to letterbox bars. */
+.story-letterbox {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	background-position: center;
+	background-size: cover;
+	filter: blur(28px) brightness(0.45) saturate(0.8);
+	transform: scale(1.12);
+	pointer-events: none;
+}
+
+/* The whole stage advances the scene. Sits above the painting but below the
+   dialogue box, so the box's own button and the Skip control still take
+   their own clicks. Absolute rather than grid-placed: the stage switches to
+   flex column under 640px, and absolute positioning works in both. */
+.story-advance {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	appearance: none;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+}
+
+.story-advance:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: -4px;
+}
+
+/* Top-right — the corner the patience meter owns elsewhere, but that isn't
+   rendered on story scenes. */
+.story-skip {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 4;
+	margin: var(--chrome-inset);
+	background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+	border: 1.5px solid var(--color-accent);
+	border-radius: 20px;
+	padding: 8px 16px;
+	color: var(--color-ink-muted);
+	font-family: var(--font-ui);
+	font-size: 0.8rem;
+	letter-spacing: 0.06em;
+	cursor: pointer;
+	backdrop-filter: blur(2px);
+}
+
+.story-skip:hover,
+.story-skip:focus-visible {
+	color: var(--color-ink);
+}
+
+.story-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+/* One pip per beat, filling as the scene plays — a cutscene with no visible
+   length is a cutscene people skip. */
+.story-progress {
+	display: flex;
+	gap: 6px;
+}
+
+.story-pip {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--color-locked);
+}
+
+.story-pip--seen {
+	background: var(--color-accent);
+}
+
+/* The footer already right-aligns the action; drop the standalone
+   align-self it uses inside the dead-end box. */
+.story-footer .dialogue-action {
+	align-self: auto;
+}
+
+/* A 2.55:1 painting contained inside a portrait band is a postage stamp in a
+   sea of blur. On phones, crop it like every other painting — a legible
+   scene beats a complete but unreadable one. Must sit after the --contain
+   rule above, which would otherwise win on source order. */
+@media (max-width: 640px) {
+	.dead-end-painting--contain {
+		object-fit: cover;
+	}
+
+	.story-letterbox {
+		display: none;
+	}
+}

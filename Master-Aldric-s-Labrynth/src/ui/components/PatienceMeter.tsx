@@ -12,7 +12,7 @@ export function PatienceMeter({ remaining, total }: PatienceMeterProps) {
 
 	return (
 		<div className="patience-meter">
-			<span>
+			<span className="patience-meter__label">
 				{theme.labels.mentor}'s {label}
 			</span>
 			<div className="patience-meter__pips">

@@ -4,6 +4,7 @@
 	position: relative;
 	max-width: 900px;
 	min-height: 100vh;
+	min-height: 100dvh;
 	margin: 0 auto;
 	display: flex;
 	flex-direction: column;
@@ -11,12 +12,20 @@
 	justify-content: center;
 	gap: 16px;
 	text-align: center;
-	padding: 24px;
+	padding: max(24px, calc(var(--chrome-inset) + var(--chrome-height) + 12px))
+		clamp(16px, 5vw, 24px) 24px;
 	box-sizing: border-box;
 }
 
 .fallback-scene h1 {
 	font-family: var(--font-display);
+	font-size: clamp(1.2rem, 4.5vw, 1.7rem);
+	text-wrap: balance;
+}
+
+/* The completed-run summary is one long "step → step → step" string. */
+.fallback-scene p {
+	overflow-wrap: anywhere;
 }
 
 .fallback-scene button {

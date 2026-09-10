@@ -1,14 +1,41 @@
-/* ---------- Dead end (Hades-style: art fills the frame, dialogue box overlays the bottom) ---------- */
+/* ---------- Dead end (Hades-style: the painting IS the screen, dialogue box overlays the bottom) ----------
+
+   A full-viewport, one-cell grid: the painting covers the whole stage and
+   the dialogue box is placed in the same cell, aligned to the bottom and
+   capped at a readable measure so the line length doesn't stretch with the
+   window. Nothing here is boxed to a fixed aspect — the art crops to
+   whatever shape the viewport is. */
 
 .dead-end-scene {
 	position: relative;
 	z-index: 0;
-	max-width: 900px;
-	aspect-ratio: 690 / 440;
-	margin: 24px auto;
-	border-radius: 12px;
+	display: grid;
+	grid-template-areas: 'stage';
+	align-items: end;
+	justify-items: center;
+	width: 100%;
+	min-height: 100vh;
+	min-height: 100dvh;
 	overflow: hidden;
-	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.dead-end-scene > * {
+	grid-area: stage;
+}
+
+/* Cropped to fill the viewport — the paintings are 1.5–1.9 wide and the
+   window can be anything. Each one carries its own object-position (the
+   registry's `focus`, applied inline) pointing at Aldric; this is only the
+   fallback for art that hasn't declared one. */
+.dead-end-painting {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center 38%;
 }
 
 .dead-end-scene .scene-art--backdrop {
@@ -19,19 +46,40 @@
 	z-index: 1;
 }
 
-.dialogue-box {
-	position: absolute;
-	left: 20px;
-	right: 20px;
-	bottom: 20px;
+/* Darkens the painting's lower third so the dialogue box reads against a
+   bright bathtub or a candlelit table alike. */
+.dead-end-scene::before {
+	content: '';
+	grid-area: stage;
+	align-self: stretch;
+	/* justify-items on the parent centres the dialogue box; the scrim has to
+     opt back out of that and span the full width. */
+	justify-self: stretch;
 	z-index: 2;
+	pointer-events: none;
+	background: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.72) 0%,
+		rgba(0, 0, 0, 0.34) 24%,
+		rgba(0, 0, 0, 0) 52%
+	);
+}
+
+.dialogue-box {
+	position: relative;
+	z-index: 3;
+	/* Capped at a readable measure rather than tracking the window — on a
+     wide monitor a full-width box would run Aldric's rule out to 1800px of
+     single-line text. */
+	width: min(920px, 100% - clamp(20px, 5vw, 80px));
+	margin-bottom: clamp(16px, 5vh, 48px);
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 	background: color-mix(in srgb, var(--color-surface) 92%, transparent);
 	border: 2px solid var(--color-accent);
 	border-radius: 14px;
-	padding: 18px 20px;
+	padding: clamp(12px, 2.2vw, 18px) clamp(14px, 2.4vw, 20px);
 	backdrop-filter: blur(2px);
 }
 
@@ -39,13 +87,13 @@
 	font-family: var(--font-display);
 	font-weight: 700;
 	color: var(--color-accent);
-	font-size: 0.95rem;
+	font-size: clamp(0.85rem, 2.6vw, 0.95rem);
 }
 
 .dialogue-line {
 	margin: 0;
 	font-family: var(--font-body);
-	font-size: 0.95rem;
+	font-size: clamp(0.85rem, 2.6vw, 0.95rem);
 	min-height: 1.4em;
 }
 
@@ -54,7 +102,7 @@
 	font-family: var(--font-body);
 	font-weight: 600;
 	color: var(--color-accent);
-	font-size: 0.9rem;
+	font-size: clamp(0.82rem, 2.5vw, 0.9rem);
 }
 
 .dialogue-citation {
@@ -63,18 +111,75 @@
 	font-style: italic;
 	font-size: 0.75rem;
 	color: var(--color-ink-muted);
+	overflow-wrap: anywhere;
 }
 
 .dialogue-action {
 	align-self: flex-end;
 	background: none;
 	border: none;
+	/* A 44px touch target without moving the label off the box's edge. */
+	margin: -8px -8px -8px 0;
+	padding: 10px 8px;
 	color: var(--color-ink-muted);
 	font-family: var(--font-ui);
 	font-size: 0.85rem;
 	cursor: pointer;
 }
 
-.dialogue-action:hover {
+.dialogue-action:hover,
+.dialogue-action:focus-visible {
 	color: var(--color-ink);
+}
+
+/* Under ~640px the dialogue box needs so many lines that it covers the whole
+   painting — Aldric ends up entirely behind his own punchline. So stop
+   overlaying and split the screen instead: the art takes the space the text
+   doesn't need, the box becomes a panel under it. Still full-viewport, just
+   divided rather than layered. (A wider threshold than the door stacking
+   above: doors still fit three-up at 600px, this doesn't.) */
+@media (max-width: 640px) {
+	.dead-end-scene {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.dead-end-scene::before {
+		display: none;
+	}
+
+	/* flex-basis 0 so the art is sized purely by the leftover space; the
+     floor keeps it a scene rather than a letterbox strip when the rule text
+     runs long on a short phone. */
+	/* `relative`, not `static` — the painting is in flow here, but it still
+     needs its z-index to apply so a story scene's blurred letterbox (which
+     is absolutely positioned) stays behind it rather than over it. */
+	.dead-end-painting {
+		position: relative;
+		flex: 1 1 0;
+		min-height: 34dvh;
+		width: 100%;
+		height: auto;
+	}
+
+	/* The fallback art layers have no intrinsic size to flex against. */
+	.dead-end-scene .scene-art {
+		position: relative;
+		flex: 1 1 0;
+		min-height: 34dvh;
+	}
+
+	.dead-end-scene .scene-art--character {
+		position: absolute;
+		inset: 0;
+		flex: none;
+	}
+
+	.dialogue-box {
+		flex: none;
+		width: 100%;
+		margin: 0;
+		border-width: 2px 0 0;
+		border-radius: 0;
+	}
 }

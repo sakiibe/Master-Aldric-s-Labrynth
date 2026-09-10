@@ -9,6 +9,9 @@
      viewport above it. */
 	display: flow-root;
 	min-height: 100vh;
+	/* dvh so a mobile browser's collapsing toolbar doesn't leave a strip of
+     raw viewport below the scene; 100vh above stays as the fallback. */
+	min-height: 100dvh;
 	background: var(--color-bg);
 	color: var(--color-ink);
 	font-family: var(--font-body);

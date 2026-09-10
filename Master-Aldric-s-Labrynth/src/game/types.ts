@@ -285,6 +285,30 @@ export interface DeadEndScene {
 	line: string;
 }
 
+/** One click of a story scene: a painting and the line Aldric says over it. */
+export interface StoryBeat {
+	/** Key into the story-painting registry. */
+	art: string;
+	line: string;
+}
+
+/**
+ * The Story Mode frame around the workflows: Aldric takes the player hostage
+ * for their Cerner knowledge, demands each job aid in turn, and — once all
+ * 48 are taught — discovers he can finally look after his valley properly.
+ *
+ * Free Play deliberately has none of this; it is the same mazes with no
+ * story and no consequence.
+ */
+export interface StoryScenes {
+	/** Shown on entering Story Mode, before the Overworld. */
+	prologue: StoryBeat[];
+	/** Shown the first time the player opens a workflow in each district. */
+	briefings: Record<JobAidId, StoryBeat[]>;
+	/** Shown once every workflow is complete. */
+	finale: StoryBeat[];
+}
+
 /**
  * Design tokens and themed content, read through React context.
  *
@@ -339,8 +363,11 @@ export interface ThemeTokens {
 		junctionArt: string;
 	};
 
-	/** The 5–6 randomized Aldric reactions for dead ends. */
+	/** The randomized Aldric reactions for dead ends, one per painted scene. */
 	deadEndScenes: DeadEndScene[];
+
+	/** Story Mode's framing scenes. */
+	story: StoryScenes;
 
 	/** Every Overworld district, keyed by job aid. */
 	jobAids: Record<JobAidId, JobAid>;

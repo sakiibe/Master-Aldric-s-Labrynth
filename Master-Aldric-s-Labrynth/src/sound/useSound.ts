@@ -25,7 +25,8 @@ export type SfxKey =
 	| 'backtrack'
 	| 'complete'
 	| 'failed'
-	| 'click';
+	| 'click'
+	| 'door';
 
 export type MusicKey = 'menu' | 'overworld' | 'junction';
 
@@ -44,6 +45,13 @@ const SFX: Record<SfxKey, Clip> = {
 	complete: { src: '/audio/sfx/complete.wav', volume: 1.0 },
 	failed: { src: '/audio/sfx/failed.wav', volume: 0.95 },
 	click: { src: '/audio/sfx/click.wav', volume: 0.6 },
+	// The door itself opening, fired the moment a junction door is picked —
+	// before the engine has judged it. It therefore overlaps `correct`/`wrong`,
+	// which land a beat later off the run transition, so keep it under those:
+	// the outcome is the sound that matters, this is the room reacting.
+	// Capitalised filename is deliberate — it matches the file on disk, and
+	// Netlify's filesystem is case-sensitive where Windows is not.
+	door: { src: '/audio/sfx/Door.mp3', volume: 0.7 },
 };
 
 /** Looping ambient beds, one per scene. */
