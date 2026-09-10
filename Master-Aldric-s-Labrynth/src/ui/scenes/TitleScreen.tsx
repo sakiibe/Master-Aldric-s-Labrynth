@@ -7,10 +7,9 @@ import { SettingsPanel } from '../components/SettingsPanel';
  *
  * Recreated from a design-handoff mockup — a high-fidelity HTML prototype
  * built on a design-prototyping runtime, not portable markup. Layer order,
- * colors, blend modes, and animation timings are the mock's, verbatim; the
- * hand-drawn CSS button/icon styling is ported here as inline style (the
- * rest of ui/ mixes inline style and a scoped <style> block the same way —
- * see Overworld).
+ * colors, blend modes, and animation timings are the mock's, verbatim. Its
+ * static rules and keyframes live in ui/styles/title.css; only per-element
+ * anchors (computed positions) remain as inline style attrs here.
  *
  * Full-viewport key art of Aldric in his maze with an atmosphere pass
  * (lightning, volumetric potion smoke, floor mist, embers) over the top,
@@ -292,8 +291,6 @@ export function TitleScreen({
 
 	return (
 		<div style={rootStyle}>
-			<style>{CSS}</style>
-
 			{/* Layer 1 — key art */}
 			<div
 				style={{
@@ -981,8 +978,7 @@ const plateStyle: React.CSSProperties = {
 	border: '1px solid rgba(232,207,143,0.45)',
 	background:
 		'linear-gradient(180deg, rgba(36,22,60,0.72), rgba(20,12,36,0.72))',
-	boxShadow:
-		'inset 0 1px 0 rgba(255,236,190,0.18), 0 8px 24px rgba(0,0,0,0.5)',
+	boxShadow: 'inset 0 1px 0 rgba(255,236,190,0.18), 0 8px 24px rgba(0,0,0,0.5)',
 	backdropFilter: 'blur(3px)',
 };
 
@@ -1087,48 +1083,3 @@ const overlayCloseStyle: React.CSSProperties = {
 	padding: 6,
 	color: '#e8cf8f',
 };
-
-const CSS = `
-	@keyframes ts-breathe { 0%,100% { transform: scale(1.035) translateY(0px); } 50% { transform: scale(1.043) translateY(-7px); } }
-	@keyframes ts-swayA { 0%,100% { transform: translate3d(0,0,0) rotate(0deg); } 50% { transform: translate3d(-10px,4px,0) rotate(0.35deg); } }
-	@keyframes ts-smokeRise {
-		0%   { transform: translate3d(0,0,0) scale(0.55) rotate(0deg); opacity: 0; }
-		18%  { opacity: 0.75; }
-		60%  { transform: translate3d(14px,-120px,0) scale(1.25) rotate(70deg); opacity: 0.5; }
-		100% { transform: translate3d(-18px,-240px,0) scale(2.1) rotate(150deg); opacity: 0; }
-	}
-	@keyframes ts-smokeRise2 {
-		0%   { transform: translate3d(0,0,0) scale(0.6) rotate(0deg); opacity: 0; }
-		22%  { opacity: 0.65; }
-		100% { transform: translate3d(26px,-210px,0) scale(1.95) rotate(-140deg); opacity: 0; }
-	}
-	@keyframes ts-mistDrift { 0% { transform: translate3d(-6%,0,0) scale(1.1); } 50% { transform: translate3d(6%,-2%,0) scale(1.25); } 100% { transform: translate3d(-6%,0,0) scale(1.1); } }
-	@keyframes ts-flashA { 0%,4.2%,100% { opacity: 0; } 1.1% { opacity: 0.55; } 1.7% { opacity: 0.12; } 2.4% { opacity: 0.72; } 3.2% { opacity: 0.05; } }
-	@keyframes ts-flashB { 0%,3%,100% { opacity: 0; } 0.7% { opacity: 0.4; } 1.4% { opacity: 0.08; } 2% { opacity: 0.5; } }
-	@keyframes ts-boltA { 0%,2.6%,100% { opacity: 0; } 0.5% { opacity: 0.9; } 1.1% { opacity: 0.15; } 1.6% { opacity: 0.7; } }
-	@keyframes ts-emberFloat { 0% { transform: translate3d(0,20px,0); opacity: 0; } 20% { opacity: 0.9; } 100% { transform: translate3d(30px,-320px,0); opacity: 0; } }
-	@keyframes ts-potionPulse { 0%,100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 0.85; transform: scale(1.14); } }
-	@keyframes ts-uiRise { 0% { opacity: 0; transform: translateY(24px); } 100% { opacity: 1; transform: translateY(0); } }
-	@keyframes ts-runeSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-	.ts-uiRise { animation: ts-uiRise 1.2s cubic-bezier(0.16,1,0.3,1) both; }
-
-	/* Ambient animations run unconditionally; the top-level reduce-motion
-	   switch (data-reduce-motion on <html>, ui/styles/game.css) halts them
-	   when the Settings toggle is on. */
-	.ts-breathe { animation: ts-breathe 9s ease-in-out infinite; }
-	.ts-swayA { animation: ts-swayA 14s ease-in-out infinite; }
-	.ts-mistDrift { animation: ts-mistDrift 26s ease-in-out infinite; }
-	.ts-flashA { animation: ts-flashA 13s linear infinite; }
-	.ts-flashB { animation: ts-flashB 19s linear infinite; }
-	.ts-boltA { animation: ts-boltA 13s linear infinite; }
-	.ts-smokeRise { animation: ts-smokeRise 7s ease-out infinite; }
-	.ts-smokeRise2 { animation: ts-smokeRise2 9.5s ease-out infinite; }
-	.ts-emberFloat { animation: ts-emberFloat 14s linear infinite; }
-	.ts-potionPulse { animation: ts-potionPulse 3.6s ease-in-out infinite; }
-	.ts-runeSpin { animation: ts-runeSpin 22s linear infinite; }
-
-	@media (max-width: 620px) {
-		.ts-subtitle { display: none !important; }
-	}
-`;

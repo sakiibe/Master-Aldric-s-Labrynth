@@ -19,10 +19,7 @@ export function SoundControl() {
 			title={muted ? 'Unmute music' : 'Mute music'}
 		>
 			<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-				<path
-					fill="currentColor"
-					d="M4 9v6h4l5 5V4L8 9H4z"
-				/>
+				<path fill="currentColor" d="M4 9v6h4l5 5V4L8 9H4z" />
 				{muted ? (
 					// A slash across the speaker when muted.
 					<path

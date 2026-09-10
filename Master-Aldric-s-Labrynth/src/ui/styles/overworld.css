@@ -1,0 +1,83 @@
+/* ---------- Overworld trail map (moved from Overworld.tsx) ----------
+
+   Static rules and ambient keyframes for the night map. Per-element
+   positions (waystones, trails) stay as inline style attrs in the scene. */
+
+@keyframes ow-tw {
+	0%,
+	100% {
+		opacity: 0.25;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+@keyframes ow-drift {
+	0% {
+		transform: translate(0, 0);
+	}
+	100% {
+		transform: translate(28px, -34px);
+	}
+}
+@keyframes ow-pulse {
+	0%,
+	100% {
+		opacity: 0.28;
+	}
+	50% {
+		opacity: 0.62;
+	}
+}
+.ow-hit {
+	background: none;
+	border: none;
+	padding: 0;
+}
+.ow-hit:not(:disabled) {
+	cursor: pointer;
+}
+.ow-hit:focus-visible {
+	outline: 2px solid #caa14a;
+	outline-offset: 4px;
+	border-radius: 50%;
+}
+.ow-back {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 9px 18px 9px 14px;
+	font:
+		600 12px Cinzel,
+		serif;
+	letter-spacing: 2.4px;
+	color: #caa14a;
+	cursor: pointer;
+	background: #1b1230cc;
+	border: 1.5px solid #caa14a;
+	transition:
+		color 160ms ease,
+		border-color 160ms ease,
+		background 160ms ease;
+}
+.ow-back:hover,
+.ow-back:focus-visible {
+	color: #f4ead6;
+	background: #241a42;
+}
+.ow-back:focus-visible {
+	outline: 2px solid #caa14a;
+	outline-offset: 3px;
+}
+/* Ambient animations run unconditionally; the global reduce-motion
+           kill switch (data-reduce-motion on <html>, ui/styles/base.css)
+           halts them from the Settings toggle. */
+.ow-twinkle {
+	animation: ow-tw var(--dur) ease-in-out var(--delay) infinite;
+}
+.ow-smoke {
+	animation: ow-drift 7s ease-out infinite;
+}
+.ow-pulse-ring {
+	animation: ow-pulse 2.6s ease-in-out infinite;
+}

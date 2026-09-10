@@ -143,7 +143,6 @@ export function OverworldLadder({
 				overflow: 'hidden',
 			}}
 		>
-			<style>{CSS}</style>
 			<div
 				style={{
 					position: 'relative',
@@ -686,49 +685,3 @@ const railStyle: React.CSSProperties = {
    inline `boxShadow` would beat every rule in this block. `::before` pads the
    hit area 2px into the 5px gap above and below (2+2 < 5, so neighbours never
    overlap): the 30px rung box is small once the stage is scaled down. */
-const CSS = `
-  @keyframes lr-tw { 0%, 100% { opacity: .25 } 50% { opacity: 1 } }
-  @media (prefers-reduced-motion: no-preference) {
-    .lr-twinkle { animation: lr-tw var(--dur) ease-in-out var(--delay) infinite; }
-  }
-  .lr-rung {
-    position: relative;
-    z-index: 2;
-    height: 30px;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 0 12px 0 0;
-    text-align: left;
-    font: inherit;
-    cursor: pointer;
-    background: linear-gradient(90deg, #241a42 0%, #2a1d47 100%);
-    border: 1px solid var(--edge);
-    box-shadow: inset 0 0 14px var(--inner);
-    transition: box-shadow 160ms ease, border-color 160ms ease;
-  }
-  .lr-rung::before { content: ''; position: absolute; left: 0; right: 0; top: -2px; bottom: -2px; }
-  .lr-rung:hover, .lr-rung:focus-visible {
-    border-color: var(--edge-hover);
-    box-shadow: inset 0 0 20px var(--inner-hover);
-  }
-  .lr-rung:focus-visible { outline: 2px solid #caa14a; outline-offset: 2px; }
-  .lr-dot {
-    width: 7px; height: 7px; flex: none; border-radius: 50%;
-    background: #ffd79a; box-shadow: 0 0 9px #ffd79a;
-    transition: box-shadow 160ms ease;
-  }
-  .lr-rung:hover .lr-dot, .lr-rung:focus-visible .lr-dot { box-shadow: 0 0 15px #ffd79a; }
-  .lr-check { transition: box-shadow 160ms ease; }
-  .lr-back {
-    display: flex; align-items: center; gap: 9px;
-    padding: 9px 18px 9px 14px;
-    font: 600 12px Cinzel, serif; letter-spacing: 2.4px;
-    color: #caa14a; cursor: pointer;
-    background: #1b1230cc; border: 1.5px solid #caa14a;
-    transition: color 160ms ease, background 160ms ease;
-  }
-  .lr-back:hover, .lr-back:focus-visible { color: #f4ead6; background: #241a42; }
-  .lr-back:focus-visible { outline: 2px solid #caa14a; outline-offset: 3px; }
-`;
