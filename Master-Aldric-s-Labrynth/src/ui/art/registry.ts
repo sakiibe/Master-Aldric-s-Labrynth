@@ -3,18 +3,20 @@
  *
  * Two kinds of art live behind these keys:
  *
- * - **Painted scenes** (`deadEndPaintings`) — full-bleed illustrations in
- *   `public/art/deadend/`. These are whole rooms, not cut-out characters, so
- *   a scene that has one renders the painting *instead of* RoomBackdrop +
- *   character layer, not on top of them.
- * - **Inline SVG** — everything else (the junction backdrop, the placeholder).
+ * - **Painted scenes** (`deadEndPaintings`, `storyPaintings`) — full-bleed
+ *   illustrations in `public/art/`. These are whole rooms, not cut-out
+ *   characters, so a scene that has one renders the painting *instead of*
+ *   RoomBackdrop + character layer, not on top of them.
+ * - **Inline SVG** — everything else (currently just the placeholder).
  *
  * Anything with no entry in either table falls back to a placeholder rather
  * than crashing, so theme content can name a scene before its art exists.
+ *
+ * The junction chamber is NOT here: it carries hotspot geometry alongside its
+ * image and lives in ./junctionRooms.ts.
  */
 import { createElement, type ComponentType, type ReactElement } from 'react';
 import { ArtFallback } from './ArtFallback';
-import { JunctionBackdrop } from './JunctionBackdrop';
 
 export interface Painting {
 	src: string;
@@ -145,12 +147,4 @@ const deadEndArt: Record<string, ComponentType> = {};
  * create a component during render (react-hooks/static-components). */
 export function getDeadEndArt(key: string): ReactElement {
 	return createElement(deadEndArt[key] ?? ArtFallback);
-}
-
-const junctionArt: Record<string, ComponentType> = {
-	'junction-default': JunctionBackdrop,
-};
-
-export function getJunctionArt(key: string): ReactElement {
-	return createElement(junctionArt[key] ?? ArtFallback);
 }

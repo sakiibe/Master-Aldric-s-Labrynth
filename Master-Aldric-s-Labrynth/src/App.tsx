@@ -19,6 +19,7 @@ import {
 import { useRun } from './state/useRun';
 import { SoundProvider } from './sound/SoundProvider';
 import { useSound } from './sound/useSound';
+import { preloadJunctionRoom } from './ui/art/junctionRooms';
 import { preloadDeadEndPaintings } from './ui/art/registry';
 import { PatienceMeter } from './ui/components/PatienceMeter';
 import { SoundControl } from './ui/components/SoundControl';
@@ -113,12 +114,14 @@ function WorkflowScreen({
 	const { run, choose, backtrack, useHint, restart } = useRun(workflow);
 	useRunSounds(run);
 
-	// Fetch the dead-end art up front — a wrong door can land on any of the
+	// Fetch the art up front. A wrong door can land on any of the dead-end
 	// scenes with no warning, so decoding one on first sight would flash an
-	// empty frame under the dialogue box.
+	// empty frame under the dialogue box; and the junction chamber IS the
+	// junction screen, which is the very next thing to render.
 	useEffect(() => {
+		preloadJunctionRoom(theme.assets.junctionArt);
 		preloadDeadEndPaintings();
-	}, []);
+	}, [theme.assets.junctionArt]);
 
 	return (
 		<>
