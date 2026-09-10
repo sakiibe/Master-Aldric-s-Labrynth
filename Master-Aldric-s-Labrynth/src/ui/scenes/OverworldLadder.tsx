@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { BuiltWorkflow, JobAidId, WorkflowId } from '../../game/types';
 import { useTheme } from '../../state/useTheme';
+import { generateStars } from './overworldShared';
 import { SigilSvg } from '../art/DistrictSigil';
 import { DISTRICT_TINT } from '../art/districtTints';
 
@@ -55,17 +56,6 @@ const PLATE_NAME: Record<JobAidId, string> = {
 	verification: 'PHARMACIST VERIFICATION',
 };
 
-function rng(seed: number): () => number {
-	let s = seed;
-	return () => {
-		s |= 0;
-		s = (s + 0x6d2b79f5) | 0;
-		let t = Math.imul(s ^ (s >>> 15), 1 | s);
-		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-	};
-}
-
 /* ------------------------------------------------------------------ */
 
 export function OverworldLadder({
@@ -87,33 +77,7 @@ export function OverworldLadder({
 		return () => window.removeEventListener('resize', fit);
 	}, []);
 
-	const stars = (() => {
-		const r = rng(STAR_SEED);
-		const out: {
-			x: number;
-			y: number;
-			r: number;
-			twinkle: boolean;
-			dur: number;
-			delay: number;
-			opacity: number;
-		}[] = [];
-		for (let i = 0; i < STAR_COUNT; i++) {
-			const y = Math.pow(r(), 1.7) * 300;
-			const size = r();
-			const twinkle = r() < 0.3;
-			out.push({
-				x: +(r() * STAGE_W).toFixed(1),
-				y: +y.toFixed(1),
-				r: +(0.6 + size * 1.9).toFixed(2),
-				twinkle,
-				dur: +(2.4 + r() * 4).toFixed(1),
-				delay: +(r() * 5).toFixed(1),
-				opacity: twinkle ? 0.9 : +(0.18 + size * 0.5).toFixed(2),
-			});
-		}
-		return out;
-	})();
+	const stars = generateStars(STAR_SEED, STAGE_W, STAR_COUNT);
 
 	const done = new Set(completed);
 	const districts = ORDER.map((key) => {

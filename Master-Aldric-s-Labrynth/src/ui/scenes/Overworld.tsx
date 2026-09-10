@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { BuiltWorkflow, JobAidId, WorkflowId } from '../../game/types';
+import { mulberry32 } from '../../game/rng';
 import { useTheme } from '../../state/useTheme';
+import { generateStars } from './overworldShared';
 import { DistrictSigil } from '../art/DistrictSigil';
 import { DISTRICT_TINT } from '../art/districtTints';
 
@@ -35,19 +37,8 @@ const STAR_COUNT = 170;
 const STAR_SEED = 20260901;
 
 /* ------------------------------------------------------------------ */
-/* Geometry — deterministic RNG, Catmull-Rom spline, switchback layout */
+/* Geometry — Catmull-Rom spline, switchback layout (RNG: game/rng.ts)  */
 /* ------------------------------------------------------------------ */
-
-function rng(seed: number): () => number {
-	let s = seed;
-	return () => {
-		s |= 0;
-		s = (s + 0x6d2b79f5) | 0;
-		let t = Math.imul(s ^ (s >>> 15), 1 | s);
-		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-	};
-}
 
 interface Pt {
 	x: number;
@@ -227,33 +218,7 @@ export function Overworld({
 		byDistrict.set(w.jobAid, list);
 	}
 
-	const stars = (() => {
-		const r = rng(STAR_SEED);
-		const out: {
-			x: number;
-			y: number;
-			r: number;
-			twinkle: boolean;
-			dur: number;
-			delay: number;
-			opacity: number;
-		}[] = [];
-		for (let i = 0; i < STAR_COUNT; i++) {
-			const y = Math.pow(r(), 1.7) * 300;
-			const size = r();
-			const twinkle = r() < 0.3;
-			out.push({
-				x: +(r() * STAGE_W).toFixed(1),
-				y: +y.toFixed(1),
-				r: +(0.6 + size * 1.9).toFixed(2),
-				twinkle,
-				dur: +(2.4 + r() * 4).toFixed(1),
-				delay: +(r() * 5).toFixed(1),
-				opacity: twinkle ? 0.9 : +(0.18 + size * 0.5).toFixed(2),
-			});
-		}
-		return out;
-	})();
+	const stars = generateStars(STAR_SEED, STAGE_W, STAR_COUNT);
 
 	const nodes: NodeInfo[] = [];
 	const trails: { key: JobAidId; color: string; d: string; lit: string }[] = [];
@@ -272,7 +237,7 @@ export function Overworld({
 		totalDone += done;
 		totalAll += n;
 
-		const jit = rng(1000 + li * 77);
+		const jit = mulberry32(1000 + li * 77);
 		const bez = (t: number, a: number, b: number, cc: number) => {
 			const u = 1 - t;
 			return u * u * a + 2 * u * t * b + t * t * cc;
