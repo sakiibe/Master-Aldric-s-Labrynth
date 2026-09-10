@@ -1,0 +1,493 @@
+/* ---------- Job Aids drawer (ui/components/JobAidPanel.tsx) ----------
+
+   The source PDF for the current district, on a right-edge drawer.
+
+   Ported from the `Job Aids Panel` handoff. Its palette was the theme's
+   already — the mock's #2a1d44 handle against the theme's #2a1d47 surface,
+   its #c9a95f gold against the theme's #caa14a — so every colour below reads
+   a token instead, per the no-colour-literal rule in base.css. The only
+   literals are alpha washes (the scrim, the drawer's shadow), which are
+   shading rather than palette and have no token to read.
+
+   Sizes are px/rem, not the mock's cqw: the mock scaled with a preview pane,
+   this drawer sits in a real viewport. The px equivalents at the handoff's
+   1877px reference width are what the numbers below came from. */
+
+.job-aid {
+	--aid-line: color-mix(in srgb, var(--color-cleared) 70%, transparent);
+	--aid-line-soft: color-mix(in srgb, var(--color-cleared) 40%, transparent);
+	--aid-lit: color-mix(in srgb, var(--color-cleared) 45%, var(--color-surface));
+
+	position: fixed;
+	inset: 0;
+	/* Above the fixed chrome (z-index 10 in header.css) so the drawer covers
+     the patience meter rather than sliding under it. */
+	z-index: 40;
+	/* The drawer and handle take their own events back below; without this the
+     closed panel's full-viewport box would eat every click in the scene. */
+	pointer-events: none;
+	font-family: var(--font-body);
+}
+
+.job-aid__scrim {
+	position: absolute;
+	inset: 0;
+	background: rgba(8, 5, 16, 0.55);
+	animation: job-aid-fade 180ms ease-out;
+	pointer-events: auto;
+}
+
+@keyframes job-aid-fade {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* Handle + grip + drawer travel as ONE row, so the handle always sits on the
+   drawer's outer edge and doubles as the close affordance. */
+.job-aid__group {
+	position: absolute;
+	top: 0;
+	right: 0;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	transform: translateX(var(--aid-width));
+	transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+	pointer-events: auto;
+}
+
+.job-aid.is-open .job-aid__group {
+	transform: translateX(0);
+}
+
+/* ---------- handle ---------- */
+
+.job-aid__handle {
+	flex: none;
+	/* Closes the hairline the browser can leave between handle and drawer at
+     fractional device pixel ratios. */
+	margin-right: -1px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 13px;
+	padding: 28px 14px;
+	border: 1.5px solid var(--color-accent);
+	border-right: none;
+	border-radius: 9px 0 0 9px;
+	background: var(--color-surface);
+	color: var(--color-ink);
+	font-family: var(--font-display);
+	cursor: pointer;
+	box-shadow: -5px 0 23px rgba(8, 5, 16, 0.55);
+}
+
+.job-aid__handle:hover {
+	background: var(--aid-lit);
+}
+
+.job-aid__diamond {
+	width: 12px;
+	height: 12px;
+	background: var(--color-accent);
+	transform: rotate(45deg);
+}
+
+.job-aid__handle-text {
+	writing-mode: vertical-rl;
+	text-orientation: mixed;
+	letter-spacing: 0.24em;
+	font-size: 0.85rem;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+.job-aid__chev {
+	font-size: 1rem;
+	color: var(--color-ink-muted);
+}
+
+/* ---------- resize grip ---------- */
+
+.job-aid__grip {
+	flex: none;
+	width: 14px;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(90deg, transparent, var(--aid-line-soft));
+	cursor: col-resize;
+	touch-action: none;
+}
+
+.job-aid__grip:hover {
+	background: linear-gradient(90deg, transparent, var(--aid-line));
+}
+
+.job-aid__grip span {
+	width: 3px;
+	height: 56px;
+	border-radius: 2px;
+	background: var(--color-cleared);
+}
+
+/* ---------- drawer ---------- */
+
+.job-aid__drawer {
+	width: var(--aid-width);
+	height: 100%;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	background: var(--color-bg);
+	border-left: 1.5px solid var(--color-accent);
+	box-shadow: -19px 0 56px rgba(8, 5, 16, 0.6);
+}
+
+.job-aid__head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 20px 22px 16px;
+	border-bottom: 1px solid var(--aid-line);
+}
+
+.job-aid__titles {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.job-aid__eyebrow {
+	font-family: var(--font-display);
+	font-size: 0.72rem;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--color-accent);
+}
+
+.job-aid__title {
+	margin: 0;
+	font-family: var(--font-display);
+	font-size: 1.4rem;
+	font-weight: 600;
+	color: var(--color-ink);
+	text-wrap: pretty;
+}
+
+.job-aid__title:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: 4px;
+}
+
+.job-aid__head-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: none;
+}
+
+.job-aid__esc {
+	font-family: var(--font-ui);
+	font-size: 0.68rem;
+	letter-spacing: 0.06em;
+	color: var(--color-ink-muted);
+	border: 1px solid var(--aid-line);
+	border-radius: 5px;
+	padding: 4px 8px;
+}
+
+.job-aid__close {
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1.5px solid var(--color-accent);
+	border-radius: 6px;
+	background: var(--color-surface);
+	color: var(--color-ink);
+	font-size: 1.1rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.job-aid__close:hover {
+	background: var(--aid-lit);
+}
+
+/* ---------- document card ---------- */
+
+.job-aid__doc {
+	padding: 16px 22px;
+	display: flex;
+	flex-direction: column;
+	gap: 13px;
+	border-bottom: 1px solid var(--aid-line-soft);
+}
+
+.job-aid__docrow {
+	display: flex;
+	align-items: center;
+	gap: 13px;
+}
+
+.job-aid__thumb {
+	flex: none;
+	width: 51px;
+	height: 64px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid var(--color-accent);
+	border-radius: 4px;
+	background: var(--color-surface);
+	font-family: var(--font-display);
+	font-size: 0.72rem;
+	color: var(--color-accent);
+}
+
+.job-aid__meta {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 0;
+}
+
+.job-aid__docname {
+	font-size: 1rem;
+	font-weight: 500;
+	color: var(--color-ink);
+}
+
+.job-aid__docsub {
+	font-size: 0.8rem;
+	color: var(--color-ink-muted);
+}
+
+.job-aid__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.job-aid__btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 9px 16px;
+	border-radius: 5px;
+	border: 1px solid var(--aid-line);
+	background: transparent;
+	color: var(--color-ink-muted);
+	font-family: var(--font-body);
+	font-size: 0.88rem;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.job-aid__btn--filled {
+	border-color: var(--color-cleared);
+	background: var(--color-surface);
+	color: var(--color-ink);
+}
+
+.job-aid__btn--filled:hover {
+	background: var(--aid-lit);
+}
+
+.job-aid__btn--gold {
+	border-color: var(--color-accent);
+	color: var(--color-accent);
+}
+
+.job-aid__btn--gold:hover {
+	background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.job-aid__btn--quiet:hover {
+	border-color: var(--color-cleared);
+	color: var(--color-ink);
+}
+
+/* ---------- section list ---------- */
+
+.job-aid__sections {
+	max-height: 263px;
+	overflow-y: auto;
+	padding: 8px 14px;
+	background: var(--color-surface);
+	border-bottom: 1px solid var(--aid-line-soft);
+	animation: job-aid-rise 160ms ease-out;
+}
+
+@keyframes job-aid-rise {
+	from {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.job-aid__section {
+	display: flex;
+	width: 100%;
+	box-sizing: border-box;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 9px;
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--color-ink-muted);
+	font-family: var(--font-body);
+	font-size: 0.88rem;
+	text-align: left;
+	cursor: pointer;
+}
+
+.job-aid__section:hover {
+	background: var(--aid-lit);
+	color: var(--color-ink);
+}
+
+/* The section the viewer is currently inside. */
+.job-aid__section.is-current {
+	color: var(--color-accent);
+}
+
+.job-aid__page {
+	flex: none;
+	font-size: 0.78rem;
+	color: var(--color-ink-muted);
+}
+
+/* ---------- viewer ---------- */
+
+.job-aid__viewer {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	padding: 15px;
+}
+
+.job-aid__viewer iframe {
+	flex: 1;
+	width: 100%;
+	border: 1px solid var(--aid-line);
+	border-radius: 6px;
+	/* The PDF pages are white; anything else reads as a rendering fault while
+     the viewer boots. */
+	background: #fff;
+}
+
+/* Shown INSTEAD of the frame when the file isn't installed — the component
+   checks for it rather than relying on an embed's load state. */
+.job-aid__missing {
+	flex: 1;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	gap: 6px;
+	padding: 24px;
+	text-align: center;
+	border: 1px dashed var(--aid-line);
+	border-radius: 6px;
+	color: var(--color-ink-muted);
+	font-size: 0.85rem;
+	line-height: 1.6;
+}
+
+.job-aid__missing code {
+	font-family: var(--font-ui);
+	font-size: 0.8rem;
+	color: var(--color-ink);
+}
+
+/* ---------- footer ---------- */
+
+.job-aid__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 11px 22px 16px;
+	font-size: 0.78rem;
+	color: var(--color-ink-muted);
+}
+
+.job-aid__back {
+	border: none;
+	background: none;
+	padding: 0;
+	color: var(--color-accent);
+	font-family: var(--font-body);
+	font-size: 0.78rem;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+/* ---------- small screens ----------
+
+   The drawer goes full-width rather than scaling down, per the handoff. The
+   component matches this breakpoint in JS, because the inline width the grip
+   writes would otherwise fight these rules. */
+
+@media (max-width: 899px) {
+	.job-aid__grip {
+		display: none;
+	}
+
+	.job-aid__handle {
+		padding: 20px 10px;
+		gap: 10px;
+	}
+
+	.job-aid__head,
+	.job-aid__doc,
+	.job-aid__foot {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	/* The handle stops travelling with the drawer and holds the viewport's
+     right edge in both states.
+
+     It has to: a full-width drawer makes the sliding row wider than the
+     screen, so a handle still sitting beside the drawer would ride off the
+     left edge when open and off the right edge when closed — unreachable
+     either way.
+
+     `position: fixed` looks like the obvious fix and is the wrong one: the row
+     it sits in is transformed, which makes it the containing block for fixed
+     descendants, so the handle would go on travelling regardless. Cancelling
+     the row's own translate is what actually pins it. Same easing, so the two
+     stay in lockstep for the frames the drawer is moving. */
+	.job-aid__handle {
+		position: absolute;
+		right: 0;
+		top: 50%;
+		transform: translateY(-50%) translateX(calc(-1 * var(--aid-width)));
+		transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+		/* The drawer slides UNDER it once open. */
+		z-index: 1;
+	}
+
+	.job-aid.is-open .job-aid__handle {
+		transform: translateY(-50%);
+	}
+}
