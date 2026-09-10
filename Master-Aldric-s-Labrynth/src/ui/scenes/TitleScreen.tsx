@@ -5,24 +5,23 @@ import { SettingsPanel } from '../components/SettingsPanel';
 /**
  * Title screen / landing page — the game's entry point.
  *
- * Recreated from the design handoff
- * (`design/title-screen/`), which is a
- * high-fidelity HTML prototype built on a design-prototyping runtime, not
- * portable markup. Layer order, colors, blend modes, and animation timings
- * are the handoff's, verbatim; the hand-drawn CSS button/icon styling is
- * ported here as inline style (the rest of ui/ mixes inline style and a
- * scoped <style> block the same way — see Overworld).
+ * Recreated from a design-handoff mockup — a high-fidelity HTML prototype
+ * built on a design-prototyping runtime, not portable markup. Layer order,
+ * colors, blend modes, and animation timings are the mock's, verbatim; the
+ * hand-drawn CSS button/icon styling is ported here as inline style (the
+ * rest of ui/ mixes inline style and a scoped <style> block the same way —
+ * see Overworld).
  *
  * Full-viewport key art of Aldric in his maze with an atmosphere pass
  * (lightning, volumetric potion smoke, floor mist, embers) over the top,
  * and a bottom-anchored menu: two primary modes plus How to Play / Settings.
  * Ambient animations run unconditionally; the Settings "Reduce motion" toggle
- * drives a top-level switch (data-reduce-motion on <html>, ui/styles/game.css)
+ * drives a top-level switch (data-reduce-motion on <html>, ui/styles/base.css)
  * that halts every animation and transition on the page at once.
  *
  * The `art/title-scene.png` percentages for the smoke/glow anchors are
  * calibrated to the current crop (`background-position: center 36%`) — if
- * the art is re-exported, re-anchor them (handoff §Layer 4).
+ * the art is re-exported, re-anchor them.
  */
 
 interface TitleScreenProps {
@@ -239,7 +238,7 @@ const EMBERS: Ember[] = [
 	},
 ];
 
-/* Primary-button palettes (handoff §Menu UI → Primary row). */
+/* Primary-button palettes for the two menu modes. */
 const STORY = {
 	border: '1px solid rgba(232,207,143,0.75)',
 	bg: 'linear-gradient(180deg, rgba(84,44,140,0.92), rgba(44,20,80,0.94))',

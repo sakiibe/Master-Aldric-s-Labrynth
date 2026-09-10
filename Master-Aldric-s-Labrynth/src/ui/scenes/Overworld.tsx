@@ -12,13 +12,13 @@ import { DISTRICT_TINT } from '../art/districtTints';
  * chain, so `done` (how many of a district's workflows are in `completed`)
  * is all the state this scene needs — everything else derives from it.
  *
- * Ported from `design_handoff_overworld/Overworld.dc.html`, substituting
- * real workflow data for the mock's hardcoded title lists. Every trail is
- * a generated quadratic Bézier with a sine switchback offset; waystones
- * ride it at equal ARC LENGTH (equal-t spacing bunches stones wherever the
- * coil turns). Colours not in `theme.ts` — window/lamp warmth, ground and
- * sky gradients, plaque tints, the darker scene shades — are called out in
- * the handoff as intentionally scene-only, not tokens to promote.
+ * Ported from a design-handoff mockup, substituting real workflow data for
+ * the mock's hardcoded title lists. Every trail is a generated quadratic
+ * Bézier with a sine switchback offset; waystones ride it at equal ARC
+ * LENGTH (equal-t spacing bunches stones wherever the coil turns). Colours
+ * not in `theme.ts` — window/lamp warmth, ground and sky gradients, plaque
+ * tints, the darker scene shades — are intentionally scene-only, not tokens
+ * to promote.
  */
 
 interface OverworldProps {

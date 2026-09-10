@@ -15,10 +15,10 @@ import { DISTRICT_TINT } from '../art/districtTints';
  * palette, same fonts, same tokens as the trail map; only the navigation
  * model differs.
  *
- * Ported from `design_handoff_overworld/Overworld Ladder.dc.html` (see the
- * README's "Variant: Overworld Ladder" section), substituting real workflow
- * data for the mock's hardcoded title lists. Two deliberate departures from
- * the mock, both called for by the handoff: completion is a SET of workflow
+ * Ported from a design-handoff mockup (see the README's "Variant: Overworld
+ * Ladder" section), substituting real workflow data for the mock's hardcoded
+ * title lists. Two deliberate departures from the mock, both called for by
+ * the handoff: completion is a SET of workflow
  * ids rather than the mock's prefix count (rungs may be cleared in any
  * order), and the district chips carry the four drawn sigils rather than the
  * mock's placeholder glyph characters.

@@ -51,7 +51,7 @@ const SFX: Record<SfxKey, Clip> = {
 	// the outcome is the sound that matters, this is the room reacting.
 	// Capitalised filename is deliberate — it matches the file on disk, and
 	// Netlify's filesystem is case-sensitive where Windows is not.
-	door: { src: '/audio/sfx/Door.mp3', volume: 0.7 },
+	door: { src: '/audio/sfx/door.mp3', volume: 0.7 },
 };
 
 /** Looping ambient beds, one per scene. */
