@@ -40,7 +40,15 @@
 	min-height: 100vh;
 	min-height: 100dvh;
 	overflow: hidden;
-	animation: dead-end-in 260ms ease-out;
+	/* Solid theme-purple base, so if the wrong-pick shake ever slides the
+	   painting a hair off an edge it reveals the dark purple, not white. */
+	background: var(--color-bg);
+	/* Fade up, plus a short decaying shake for the wrong-pick impact. The
+	   shake carries a slight scale so translating the full-bleed painting a
+	   few px never reveals the background at the edges. */
+	animation:
+		dead-end-in 260ms ease-out,
+		dead-end-shake 380ms ease-out;
 }
 
 .dead-end-scene > * {
@@ -218,4 +226,71 @@
        rule scrolls within the box instead of being clipped by the stage. */
 		max-height: 62dvh;
 	}
+}
+
+/* ---- Wrong-pick impact ----
+   Fires on the dead-end's mount (which only happens on a wrong pick): a red
+   hit-flash that peaks hard then recedes to a vignette, over the shake above.
+   Both rest at their neutral state, so nothing lingers on screen. */
+
+.dead-end-scene:not(.story-scene)::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+	opacity: 0;
+	/* The theme's `wrong` token is a terracotta that flashes orange at this
+	   intensity; the impact wants a truer red, so the hit uses its own. */
+	background: radial-gradient(
+		ellipse at center,
+		color-mix(in srgb, #c8141b 42%, transparent) 0%,
+		color-mix(in srgb, #c8141b 72%, transparent) 55%,
+		color-mix(in srgb, #c8141b 94%, transparent) 100%
+	);
+	animation: dead-end-hit 420ms ease-out;
+}
+
+@keyframes dead-end-hit {
+	0% {
+		opacity: 0;
+	}
+	9% {
+		opacity: 0.9;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
+@keyframes dead-end-shake {
+	0% {
+		transform: scale(1.02) translate(0, 0);
+	}
+	15% {
+		transform: scale(1.02) translate(-5px, 3px);
+	}
+	30% {
+		transform: scale(1.02) translate(4px, -4px);
+	}
+	45% {
+		transform: scale(1.02) translate(-4px, -2px);
+	}
+	60% {
+		transform: scale(1.02) translate(3px, 3px);
+	}
+	78% {
+		transform: scale(1.02) translate(-2px, 1px);
+	}
+	100% {
+		transform: scale(1) translate(0, 0);
+	}
+}
+
+/* Story scenes reuse .dead-end-scene's staging but must stay calm — no
+   wrong-pick shake during a prologue / briefing / finale. (The red ::after is
+   already excluded by :not(.story-scene) above.) This overrides the base
+   animation back to just the shared fade-in. */
+.dead-end-scene.story-scene {
+	animation: dead-end-in 260ms ease-out;
 }
