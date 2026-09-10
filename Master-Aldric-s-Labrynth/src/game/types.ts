@@ -374,7 +374,4 @@ export interface ThemeTokens {
 
 	/** Aldric's line on the Failed scene, when patience hits zero. */
 	outOfPatienceLine: string;
-
-	/** Typewriter reveal speed, ms per character. */
-	typewriterMs: number;
 }

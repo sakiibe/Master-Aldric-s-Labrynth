@@ -208,8 +208,6 @@ export const theme: ThemeTokens = {
 	outOfPatienceLine:
 		'My patience, apprentice, is not so easily replenished as your resolve. We begin again.',
 
-	typewriterMs: 30,
-
 	jobAids: {
 		bpmh: {
 			id: 'bpmh',

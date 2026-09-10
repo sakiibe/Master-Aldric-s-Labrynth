@@ -21,6 +21,7 @@ import { useRun } from './state/useRun';
 import { SoundProvider } from './sound/SoundProvider';
 import { useSound } from './sound/useSound';
 import { BackButton } from './ui/components/BackButton';
+import { JobAidPanel } from './ui/components/JobAidPanel';
 import { preloadJunctionRoom } from './ui/art/junctionRooms';
 import { preloadDeadEndPaintings } from './ui/art/registry';
 import { PatienceMeter } from './ui/components/PatienceMeter';
@@ -134,6 +135,18 @@ function WorkflowScreen({
 			<BackButton
 				label={`← ${theme.labels.overworld}`}
 				onClick={onReturnToOverworld}
+			/>
+
+			{/* Mounted for the whole workflow rather than per status: the aid is
+			    just as wanted at a dead end, reading the rule that was missed, as
+			    it is at a junction. Which of the four PDFs it opens follows from
+			    the workflow's district — see ui/components/JobAidPanel.tsx. */}
+			{/* Keyed so moving to another district remounts it: the panel's page
+			    and open state belong to the aid being read, not to the screen. */}
+			<JobAidPanel
+				key={workflow.id}
+				workflow={workflow}
+				stepAidRef={workflow.byId[run.stepId]?.aidRef}
 			/>
 
 			{run.status === 'junction' && (
