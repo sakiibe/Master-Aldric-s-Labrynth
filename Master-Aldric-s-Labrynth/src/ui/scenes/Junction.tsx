@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BuiltStep, DoorId, StepId, TakenStep } from '../../game/types';
+import { useSound } from '../../sound/useSound';
 import { useTheme } from '../../state/useTheme';
 import { Door } from '../components/Door';
 import { HintButton } from '../components/HintButton';
@@ -120,6 +121,7 @@ export function Junction({
 	onEndRun,
 }: JunctionProps) {
 	const theme = useTheme();
+	const { playSfx } = useSound();
 	const room = getJunctionRoom(theme.assets.junctionArt);
 	const hinted = hintedSteps.includes(step.id);
 
@@ -251,7 +253,18 @@ export function Junction({
 	 */
 	const lit = (i: number) => hover === i || (hover === -1 && picked === i);
 
+	/**
+	 * The single path every pick takes — the arch hotspots and the compact
+	 * list both land here, so the door sound fires once per pick however the
+	 * player made it, and can't fall out of sync between the two affordances.
+	 *
+	 * The sound plays here rather than off the run transition because it is
+	 * the door, not the verdict: it should sound the same whether the pick
+	 * turns out right or wrong, and it should land on the click rather than
+	 * after the engine has decided.
+	 */
 	const choose = (index: number, doorId: DoorId) => {
+		playSfx('door');
 		setPick({ stepId: step.id, index });
 		setHover(-1);
 		onChoose(doorId);

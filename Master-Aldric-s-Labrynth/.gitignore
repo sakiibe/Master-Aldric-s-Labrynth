@@ -20,7 +20,6 @@ dist-ssr
 .env.*
 !.env.example
 
-# Local Claude Code config and design notes — kept on disk, not tracked
 .claude/
 CLAUDE.md
 design.md
