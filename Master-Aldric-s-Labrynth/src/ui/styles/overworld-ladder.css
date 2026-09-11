@@ -32,8 +32,10 @@
 	border: 1px solid var(--edge);
 	box-shadow: inset 0 0 14px var(--inner);
 	transition:
-		box-shadow 160ms ease,
-		border-color 160ms ease;
+		box-shadow 180ms ease,
+		border-color 180ms ease,
+		background 180ms ease,
+		transform 180ms ease;
 }
 .lr-rung::before {
 	content: '';
@@ -43,10 +45,17 @@
 	top: -2px;
 	bottom: -2px;
 }
+/* A stronger, more obvious lift: the fill brightens, an OUTER glow in the
+   district tint blooms the rung off the ladder, and it slides a few px toward
+   the rail — so an open rung reads as clearly live under the cursor. */
 .lr-rung:hover,
 .lr-rung:focus-visible {
 	border-color: var(--edge-hover);
-	box-shadow: inset 0 0 20px var(--inner-hover);
+	background: linear-gradient(90deg, #2f2255 0%, #392a63 100%);
+	box-shadow:
+		inset 0 0 22px var(--inner-hover),
+		0 0 24px 2px var(--edge-hover);
+	transform: translateX(3px);
 }
 .lr-rung:focus-visible {
 	outline: 2px solid #caa14a;

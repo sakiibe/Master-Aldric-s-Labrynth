@@ -34,8 +34,40 @@
 	border: none;
 	padding: 0;
 }
+/* A clickable waystone (current or cleared) blooms theme-gold under the
+   cursor or keyboard focus, so the available workflows feel live. The glow is
+   a pseudo-element sized well beyond the small hit-box and centred on the
+   stone's halo, so it reads as the whole stone lighting up rather than a faint
+   tint. It rings brighter at mid-radius than dead centre so the ordinal digit
+   underneath stays legible. Sealed nodes are :disabled and never light. */
 .ow-hit:not(:disabled) {
 	cursor: pointer;
+	border-radius: 50%;
+}
+.ow-hit:not(:disabled)::after {
+	content: '';
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 112px;
+	height: 112px;
+	transform: translate(-50%, -50%);
+	border-radius: 50%;
+	background: radial-gradient(
+		circle,
+		rgba(202, 161, 74, 0.3) 0%,
+		rgba(232, 200, 130, 0.6) 36%,
+		rgba(202, 161, 74, 0.24) 56%,
+		rgba(202, 161, 74, 0) 72%
+	);
+	opacity: 0;
+	/* Eases in on hover and back out on leave. */
+	transition: opacity 240ms ease;
+	pointer-events: none;
+}
+.ow-hit:not(:disabled):hover::after,
+.ow-hit:not(:disabled):focus-visible::after {
+	opacity: 1;
 }
 .ow-hit:focus-visible {
 	outline: 2px solid #caa14a;
