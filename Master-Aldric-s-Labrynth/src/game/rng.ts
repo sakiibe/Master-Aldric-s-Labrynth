@@ -14,8 +14,12 @@ export function hash(seed: string): number {
 	return h >>> 0;
 }
 
-/** mulberry32 — small deterministic PRNG seeded by a 32-bit integer. */
-function mulberry32(seed: number): () => number {
+/**
+ * mulberry32 — small deterministic PRNG seeded by a 32-bit integer. Returns a
+ * generator: same seed always yields the same sequence. Used by `shuffle` here
+ * and directly by the overworld scenes for their star fields and node jitter.
+ */
+export function mulberry32(seed: number): () => number {
 	let state = seed;
 	return () => {
 		state = (state + 0x6d2b79f5) | 0;

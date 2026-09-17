@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { BuiltWorkflow, JobAidId, WorkflowId } from '../../game/types';
 import { useTheme } from '../../state/useTheme';
+import { generateStars } from './overworldShared';
 import { SigilSvg } from '../art/DistrictSigil';
 import { DISTRICT_TINT } from '../art/districtTints';
 
@@ -15,10 +16,10 @@ import { DISTRICT_TINT } from '../art/districtTints';
  * palette, same fonts, same tokens as the trail map; only the navigation
  * model differs.
  *
- * Ported from `design_handoff_overworld/Overworld Ladder.dc.html` (see the
- * README's "Variant: Overworld Ladder" section), substituting real workflow
- * data for the mock's hardcoded title lists. Two deliberate departures from
- * the mock, both called for by the handoff: completion is a SET of workflow
+ * Ported from a design-handoff mockup (see the README's "Variant: Overworld
+ * Ladder" section), substituting real workflow data for the mock's hardcoded
+ * title lists. Two deliberate departures from the mock, both called for by
+ * the handoff: completion is a SET of workflow
  * ids rather than the mock's prefix count (rungs may be cleared in any
  * order), and the district chips carry the four drawn sigils rather than the
  * mock's placeholder glyph characters.
@@ -55,17 +56,6 @@ const PLATE_NAME: Record<JobAidId, string> = {
 	verification: 'PHARMACIST VERIFICATION',
 };
 
-function rng(seed: number): () => number {
-	let s = seed;
-	return () => {
-		s |= 0;
-		s = (s + 0x6d2b79f5) | 0;
-		let t = Math.imul(s ^ (s >>> 15), 1 | s);
-		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-	};
-}
-
 /* ------------------------------------------------------------------ */
 
 export function OverworldLadder({
@@ -87,33 +77,7 @@ export function OverworldLadder({
 		return () => window.removeEventListener('resize', fit);
 	}, []);
 
-	const stars = (() => {
-		const r = rng(STAR_SEED);
-		const out: {
-			x: number;
-			y: number;
-			r: number;
-			twinkle: boolean;
-			dur: number;
-			delay: number;
-			opacity: number;
-		}[] = [];
-		for (let i = 0; i < STAR_COUNT; i++) {
-			const y = Math.pow(r(), 1.7) * 300;
-			const size = r();
-			const twinkle = r() < 0.3;
-			out.push({
-				x: +(r() * STAGE_W).toFixed(1),
-				y: +y.toFixed(1),
-				r: +(0.6 + size * 1.9).toFixed(2),
-				twinkle,
-				dur: +(2.4 + r() * 4).toFixed(1),
-				delay: +(r() * 5).toFixed(1),
-				opacity: twinkle ? 0.9 : +(0.18 + size * 0.5).toFixed(2),
-			});
-		}
-		return out;
-	})();
+	const stars = generateStars(STAR_SEED, STAGE_W, STAR_COUNT);
 
 	const done = new Set(completed);
 	const districts = ORDER.map((key) => {
@@ -143,7 +107,6 @@ export function OverworldLadder({
 				overflow: 'hidden',
 			}}
 		>
-			<style>{CSS}</style>
 			<div
 				style={{
 					position: 'relative',
@@ -686,49 +649,3 @@ const railStyle: React.CSSProperties = {
    inline `boxShadow` would beat every rule in this block. `::before` pads the
    hit area 2px into the 5px gap above and below (2+2 < 5, so neighbours never
    overlap): the 30px rung box is small once the stage is scaled down. */
-const CSS = `
-  @keyframes lr-tw { 0%, 100% { opacity: .25 } 50% { opacity: 1 } }
-  @media (prefers-reduced-motion: no-preference) {
-    .lr-twinkle { animation: lr-tw var(--dur) ease-in-out var(--delay) infinite; }
-  }
-  .lr-rung {
-    position: relative;
-    z-index: 2;
-    height: 30px;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 0 12px 0 0;
-    text-align: left;
-    font: inherit;
-    cursor: pointer;
-    background: linear-gradient(90deg, #241a42 0%, #2a1d47 100%);
-    border: 1px solid var(--edge);
-    box-shadow: inset 0 0 14px var(--inner);
-    transition: box-shadow 160ms ease, border-color 160ms ease;
-  }
-  .lr-rung::before { content: ''; position: absolute; left: 0; right: 0; top: -2px; bottom: -2px; }
-  .lr-rung:hover, .lr-rung:focus-visible {
-    border-color: var(--edge-hover);
-    box-shadow: inset 0 0 20px var(--inner-hover);
-  }
-  .lr-rung:focus-visible { outline: 2px solid #caa14a; outline-offset: 2px; }
-  .lr-dot {
-    width: 7px; height: 7px; flex: none; border-radius: 50%;
-    background: #ffd79a; box-shadow: 0 0 9px #ffd79a;
-    transition: box-shadow 160ms ease;
-  }
-  .lr-rung:hover .lr-dot, .lr-rung:focus-visible .lr-dot { box-shadow: 0 0 15px #ffd79a; }
-  .lr-check { transition: box-shadow 160ms ease; }
-  .lr-back {
-    display: flex; align-items: center; gap: 9px;
-    padding: 9px 18px 9px 14px;
-    font: 600 12px Cinzel, serif; letter-spacing: 2.4px;
-    color: #caa14a; cursor: pointer;
-    background: #1b1230cc; border: 1.5px solid #caa14a;
-    transition: color 160ms ease, background 160ms ease;
-  }
-  .lr-back:hover, .lr-back:focus-visible { color: #f4ead6; background: #241a42; }
-  .lr-back:focus-visible { outline: 2px solid #caa14a; outline-offset: 3px; }
-`;

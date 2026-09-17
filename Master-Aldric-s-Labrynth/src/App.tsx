@@ -28,6 +28,7 @@ import { preloadJunctionRoom } from './ui/art/junctionRooms';
 import { preloadDeadEndPaintings } from './ui/art/registry';
 import { PatienceMeter } from './ui/components/PatienceMeter';
 import { SoundControl } from './ui/components/SoundControl';
+import { CompleteScene } from './ui/scenes/CompleteScene';
 import { DeadEnd } from './ui/scenes/DeadEnd';
 import { Junction } from './ui/scenes/Junction';
 import { Overworld } from './ui/scenes/Overworld';
@@ -196,13 +197,12 @@ function WorkflowScreen({
 			)}
 
 			{run.status === 'complete' && (
-				<div className="fallback-scene">
-					<h1>{workflow.title} — complete</h1>
-					<p>{run.taken.map((t) => t.label).join(' → ')}</p>
-					<button type="button" onClick={onReturnToOverworld}>
-						Return to {returnLabel}
-					</button>
-				</div>
+				<CompleteScene
+					workflow={workflow}
+					run={run}
+					returnLabel={returnLabel}
+					onReturn={onReturnToOverworld}
+				/>
 			)}
 		</>
 	);
@@ -281,84 +281,97 @@ function Game() {
 		[playSfx],
 	);
 
-	if (scene.name === 'title') {
-		return (
-			<TitleScreen
-				mastered={completed.length}
-				total={builtWorkflows.length}
-				onStoryMode={() => setScene({ name: 'prologue' })}
-				onFreePlay={() => setScene({ name: 'ladder' })}
-			/>
-		);
-	}
+	// Each scene fades in on mount. The wrapper is keyed by scene name, so a
+	// scene change remounts it and replays the fade; opacity only (no
+	// transform) so the fixed HUD chrome keeps positioning to the viewport.
+	const sceneEl = (() => {
+		if (scene.name === 'title') {
+			return (
+				<TitleScreen
+					mastered={completed.length}
+					total={builtWorkflows.length}
+					onStoryMode={() => setScene({ name: 'prologue' })}
+					onFreePlay={() => setScene({ name: 'ladder' })}
+				/>
+			);
+		}
 
-	if (scene.name === 'prologue') {
-		return (
-			<StoryScene
-				beats={theme.story.prologue}
-				finishLabel={`Enter ${theme.labels.overworld}`}
-				onFinish={() => setScene({ name: 'overworld' })}
-			/>
-		);
-	}
+		if (scene.name === 'prologue') {
+			return (
+				<StoryScene
+					beats={theme.story.prologue}
+					finishLabel={`Enter ${theme.labels.overworld}`}
+					onFinish={() => setScene({ name: 'overworld' })}
+				/>
+			);
+		}
 
-	if (scene.name === 'briefing') {
-		const { jobAid, id, from } = scene;
-		return (
-			<StoryScene
-				beats={theme.story.briefings[jobAid]}
-				finishLabel="Get on with it"
-				onFinish={() => {
-					markBriefed(jobAid);
-					setScene({ name: 'workflow', id, from });
-				}}
-			/>
-		);
-	}
+		if (scene.name === 'briefing') {
+			const { jobAid, id, from } = scene;
+			return (
+				<StoryScene
+					beats={theme.story.briefings[jobAid]}
+					finishLabel="Get on with it"
+					onFinish={() => {
+						markBriefed(jobAid);
+						setScene({ name: 'workflow', id, from });
+					}}
+				/>
+			);
+		}
 
-	if (scene.name === 'finale') {
-		return (
-			<StoryScene
-				beats={theme.story.finale}
-				finishLabel="Go home"
-				onFinish={() => {
-					markFinaleSeen();
-					setScene({ name: 'overworld' });
-				}}
-			/>
-		);
-	}
+		if (scene.name === 'finale') {
+			return (
+				<StoryScene
+					beats={theme.story.finale}
+					finishLabel="Go home"
+					onFinish={() => {
+						markFinaleSeen();
+						setScene({ name: 'overworld' });
+					}}
+				/>
+			);
+		}
 
-	if (scene.name === 'overworld') {
-		return (
-			<Overworld
-				workflows={builtWorkflows}
-				completed={completed}
-				onSelect={selectWorkflow}
-				onExit={returnToTitle}
-			/>
-		);
-	}
+		if (scene.name === 'overworld') {
+			return (
+				<Overworld
+					workflows={builtWorkflows}
+					completed={completed}
+					onSelect={selectWorkflow}
+					onExit={returnToTitle}
+				/>
+			);
+		}
 
-	if (scene.name === 'ladder') {
+		if (scene.name === 'ladder') {
+			return (
+				<OverworldLadder
+					workflows={builtWorkflows}
+					completed={completed}
+					onSelect={selectWorkflow}
+					onExit={returnToTitle}
+				/>
+			);
+		}
+
 		return (
-			<OverworldLadder
-				workflows={builtWorkflows}
-				completed={completed}
-				onSelect={selectWorkflow}
-				onExit={returnToTitle}
+			<WorkflowScreen
+				workflow={workflowsById[scene.id]}
+				returnLabel={
+					scene.from === 'ladder'
+						? 'the Ladder of Rites'
+						: theme.labels.overworld
+				}
+				onReturnToOverworld={returnToOverworld}
 			/>
 		);
-	}
+	})();
 
 	return (
-		<WorkflowScreen
-			workflow={workflowsById[scene.id]}
-			returnLabel={
-				scene.from === 'ladder' ? 'the Ladder of Rites' : theme.labels.overworld
-			}
-			onReturnToOverworld={returnToOverworld}
-		/>
+		<div className="scene-fade" key={scene.name}>
+			{sceneEl}
+		</div>
 	);
 }
 

@@ -6,24 +6,22 @@ import { SettingsPanel } from '../components/SettingsPanel';
 /**
  * Title screen / landing page — the game's entry point.
  *
- * Recreated from the design handoff
- * (`design/title-screen/`), which is a
- * high-fidelity HTML prototype built on a design-prototyping runtime, not
- * portable markup. Layer order, colors, blend modes, and animation timings
- * are the handoff's, verbatim; the hand-drawn CSS button/icon styling is
- * ported here as inline style (the rest of ui/ mixes inline style and a
- * scoped <style> block the same way — see Overworld).
+ * Recreated from a design-handoff mockup — a high-fidelity HTML prototype
+ * built on a design-prototyping runtime, not portable markup. Layer order,
+ * colors, blend modes, and animation timings are the mock's, verbatim. Its
+ * static rules and keyframes live in ui/styles/title.css; only per-element
+ * anchors (computed positions) remain as inline style attrs here.
  *
  * Full-viewport key art of Aldric in his maze with an atmosphere pass
  * (lightning, volumetric potion smoke, floor mist, embers) over the top,
  * and a bottom-anchored menu: two primary modes plus How to Play / Settings.
  * Ambient animations run unconditionally; the Settings "Reduce motion" toggle
- * drives a top-level switch (data-reduce-motion on <html>, ui/styles/game.css)
+ * drives a top-level switch (data-reduce-motion on <html>, ui/styles/base.css)
  * that halts every animation and transition on the page at once.
  *
  * The `art/title-scene.png` percentages for the smoke/glow anchors are
  * calibrated to the current crop (`background-position: center 36%`) — if
- * the art is re-exported, re-anchor them (handoff §Layer 4).
+ * the art is re-exported, re-anchor them.
  */
 
 interface TitleScreenProps {
@@ -240,7 +238,7 @@ const EMBERS: Ember[] = [
 	},
 ];
 
-/* Primary-button palettes (handoff §Menu UI → Primary row). */
+/* Primary-button palettes for the two menu modes. */
 const STORY = {
 	border: '1px solid rgba(232,207,143,0.75)',
 	bg: 'linear-gradient(180deg, rgba(84,44,140,0.92), rgba(44,20,80,0.94))',
@@ -278,24 +276,37 @@ export function TitleScreen({
 	total,
 }: TitleScreenProps) {
 	const [overlay, setOverlay] = useState<Overlay>(null);
+	// The overlay animates out, so closing is a two-step: `closing` starts the
+	// exit animation while the panel stays mounted; the effect below drops it
+	// once the animation has run.
+	const [closing, setClosing] = useState(false);
 	const closeRef = useRef<HTMLButtonElement>(null);
 	const { playSfx } = useSound();
 
-	// Return focus and allow Escape to dismiss whichever overlay is open.
+	// Return focus and allow Escape to begin the overlay's exit.
 	useEffect(() => {
 		if (!overlay) return;
 		closeRef.current?.focus();
 		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') setOverlay(null);
+			if (e.key === 'Escape') setClosing(true);
 		};
 		window.addEventListener('keydown', onKey);
 		return () => window.removeEventListener('keydown', onKey);
 	}, [overlay]);
 
+	// Once the exit animation has run, unmount the overlay. Reopening cancels
+	// this (the cleanup clears the timer when `closing` flips back to false).
+	useEffect(() => {
+		if (!closing) return;
+		const t = setTimeout(() => {
+			setOverlay(null);
+			setClosing(false);
+		}, 160);
+		return () => clearTimeout(t);
+	}, [closing]);
+
 	return (
 		<div style={rootStyle}>
-			<style>{CSS}</style>
-
 			{/* Layer 1 — key art */}
 			<div
 				style={{
@@ -608,6 +619,7 @@ export function TitleScreen({
 						label="HOW TO PLAY"
 						onClick={() => {
 							playSfx('click');
+							setClosing(false);
 							setOverlay('howto');
 						}}
 					>
@@ -637,6 +649,7 @@ export function TitleScreen({
 						label="SETTINGS"
 						onClick={() => {
 							playSfx('click');
+							setClosing(false);
 							setOverlay('settings');
 						}}
 					>
@@ -716,16 +729,33 @@ export function TitleScreen({
 					role="dialog"
 					aria-modal="true"
 					aria-label={overlay === 'howto' ? 'How to play' : 'Settings'}
-					style={overlayScrimStyle}
-					onClick={() => setOverlay(null)}
+					style={
+						closing
+							? {
+									...overlayScrimStyle,
+									animation: 'overlay-scrim-out 160ms ease-in forwards',
+								}
+							: overlayScrimStyle
+					}
+					onClick={() => setClosing(true)}
 				>
-					<div style={overlayPanelStyle} onClick={(e) => e.stopPropagation()}>
+					<div
+						style={
+							closing
+								? {
+										...overlayPanelStyle,
+										animation: 'overlay-panel-out 160ms ease-in forwards',
+									}
+								: overlayPanelStyle
+						}
+						onClick={(e) => e.stopPropagation()}
+					>
 						<button
 							ref={closeRef}
 							type="button"
 							onClick={() => {
 								playSfx('click');
-								setOverlay(null);
+								setClosing(true);
 							}}
 							style={overlayCloseStyle}
 							aria-label="Close"
@@ -1043,6 +1073,7 @@ const overlayScrimStyle: React.CSSProperties = {
 	padding: 24,
 	background: 'rgba(3,1,8,0.72)',
 	backdropFilter: 'blur(3px)',
+	animation: 'overlay-scrim-in 160ms ease-out',
 };
 
 const overlayPanelStyle: React.CSSProperties = {
@@ -1057,6 +1088,7 @@ const overlayPanelStyle: React.CSSProperties = {
 		'linear-gradient(180deg, rgba(36,22,60,0.98), rgba(20,12,36,0.98))',
 	boxShadow: 'inset 0 1px 0 rgba(255,236,190,0.2), 0 20px 60px rgba(0,0,0,0.6)',
 	color: '#e2d0ff',
+	animation: 'overlay-panel-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both',
 };
 
 const overlayTitleStyle: React.CSSProperties = {
@@ -1090,48 +1122,3 @@ const overlayCloseStyle: React.CSSProperties = {
 	padding: 6,
 	color: '#e8cf8f',
 };
-
-const CSS = `
-	@keyframes ts-breathe { 0%,100% { transform: scale(1.035) translateY(0px); } 50% { transform: scale(1.043) translateY(-7px); } }
-	@keyframes ts-swayA { 0%,100% { transform: translate3d(0,0,0) rotate(0deg); } 50% { transform: translate3d(-10px,4px,0) rotate(0.35deg); } }
-	@keyframes ts-smokeRise {
-		0%   { transform: translate3d(0,0,0) scale(0.55) rotate(0deg); opacity: 0; }
-		18%  { opacity: 0.75; }
-		60%  { transform: translate3d(14px,-120px,0) scale(1.25) rotate(70deg); opacity: 0.5; }
-		100% { transform: translate3d(-18px,-240px,0) scale(2.1) rotate(150deg); opacity: 0; }
-	}
-	@keyframes ts-smokeRise2 {
-		0%   { transform: translate3d(0,0,0) scale(0.6) rotate(0deg); opacity: 0; }
-		22%  { opacity: 0.65; }
-		100% { transform: translate3d(26px,-210px,0) scale(1.95) rotate(-140deg); opacity: 0; }
-	}
-	@keyframes ts-mistDrift { 0% { transform: translate3d(-6%,0,0) scale(1.1); } 50% { transform: translate3d(6%,-2%,0) scale(1.25); } 100% { transform: translate3d(-6%,0,0) scale(1.1); } }
-	@keyframes ts-flashA { 0%,4.2%,100% { opacity: 0; } 1.1% { opacity: 0.55; } 1.7% { opacity: 0.12; } 2.4% { opacity: 0.72; } 3.2% { opacity: 0.05; } }
-	@keyframes ts-flashB { 0%,3%,100% { opacity: 0; } 0.7% { opacity: 0.4; } 1.4% { opacity: 0.08; } 2% { opacity: 0.5; } }
-	@keyframes ts-boltA { 0%,2.6%,100% { opacity: 0; } 0.5% { opacity: 0.9; } 1.1% { opacity: 0.15; } 1.6% { opacity: 0.7; } }
-	@keyframes ts-emberFloat { 0% { transform: translate3d(0,20px,0); opacity: 0; } 20% { opacity: 0.9; } 100% { transform: translate3d(30px,-320px,0); opacity: 0; } }
-	@keyframes ts-potionPulse { 0%,100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 0.85; transform: scale(1.14); } }
-	@keyframes ts-uiRise { 0% { opacity: 0; transform: translateY(24px); } 100% { opacity: 1; transform: translateY(0); } }
-	@keyframes ts-runeSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-	.ts-uiRise { animation: ts-uiRise 1.2s cubic-bezier(0.16,1,0.3,1) both; }
-
-	/* Ambient animations run unconditionally; the top-level reduce-motion
-	   switch (data-reduce-motion on <html>, ui/styles/game.css) halts them
-	   when the Settings toggle is on. */
-	.ts-breathe { animation: ts-breathe 9s ease-in-out infinite; }
-	.ts-swayA { animation: ts-swayA 14s ease-in-out infinite; }
-	.ts-mistDrift { animation: ts-mistDrift 26s ease-in-out infinite; }
-	.ts-flashA { animation: ts-flashA 13s linear infinite; }
-	.ts-flashB { animation: ts-flashB 19s linear infinite; }
-	.ts-boltA { animation: ts-boltA 13s linear infinite; }
-	.ts-smokeRise { animation: ts-smokeRise 7s ease-out infinite; }
-	.ts-smokeRise2 { animation: ts-smokeRise2 9.5s ease-out infinite; }
-	.ts-emberFloat { animation: ts-emberFloat 14s linear infinite; }
-	.ts-potionPulse { animation: ts-potionPulse 3.6s ease-in-out infinite; }
-	.ts-runeSpin { animation: ts-runeSpin 22s linear infinite; }
-
-	@media (max-width: 620px) {
-		.ts-subtitle { display: none !important; }
-	}
-`;

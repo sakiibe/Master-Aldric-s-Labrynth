@@ -11,13 +11,8 @@ import { useMotion } from '../../state/useMotion';
  * survives a reload. Styling leans on the theme CSS vars set on .theme-root.
  */
 export function SettingsPanel() {
-	const {
-		musicVolume,
-		setMusicVolume,
-		sfxVolume,
-		setSfxVolume,
-		playSfx,
-	} = useSound();
+	const { musicVolume, setMusicVolume, sfxVolume, setSfxVolume, playSfx } =
+		useSound();
 	const { reduceMotion, setReduceMotion } = useMotion();
 
 	return (
@@ -26,7 +21,9 @@ export function SettingsPanel() {
 			<div style={rowStyle}>
 				<label htmlFor="set-reduce-motion" style={labelStyle}>
 					Reduce motion
-					<span style={hintStyle}>Hold the ambient lightning, smoke, and embers still.</span>
+					<span style={hintStyle}>
+						Hold the ambient lightning, smoke, and embers still.
+					</span>
 				</label>
 				<button
 					id="set-reduce-motion"

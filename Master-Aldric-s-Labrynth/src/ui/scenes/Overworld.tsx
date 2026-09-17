@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { BuiltWorkflow, JobAidId, WorkflowId } from '../../game/types';
+import { mulberry32 } from '../../game/rng';
 import { useTheme } from '../../state/useTheme';
+import { generateStars } from './overworldShared';
 import { DistrictSigil } from '../art/DistrictSigil';
 import { DISTRICT_TINT } from '../art/districtTints';
 
@@ -12,13 +14,13 @@ import { DISTRICT_TINT } from '../art/districtTints';
  * chain, so `done` (how many of a district's workflows are in `completed`)
  * is all the state this scene needs — everything else derives from it.
  *
- * Ported from `design_handoff_overworld/Overworld.dc.html`, substituting
- * real workflow data for the mock's hardcoded title lists. Every trail is
- * a generated quadratic Bézier with a sine switchback offset; waystones
- * ride it at equal ARC LENGTH (equal-t spacing bunches stones wherever the
- * coil turns). Colours not in `theme.ts` — window/lamp warmth, ground and
- * sky gradients, plaque tints, the darker scene shades — are called out in
- * the handoff as intentionally scene-only, not tokens to promote.
+ * Ported from a design-handoff mockup, substituting real workflow data for
+ * the mock's hardcoded title lists. Every trail is a generated quadratic
+ * Bézier with a sine switchback offset; waystones ride it at equal ARC
+ * LENGTH (equal-t spacing bunches stones wherever the coil turns). Colours
+ * not in `theme.ts` — window/lamp warmth, ground and sky gradients, plaque
+ * tints, the darker scene shades — are intentionally scene-only, not tokens
+ * to promote.
  */
 
 interface OverworldProps {
@@ -35,19 +37,8 @@ const STAR_COUNT = 170;
 const STAR_SEED = 20260901;
 
 /* ------------------------------------------------------------------ */
-/* Geometry — deterministic RNG, Catmull-Rom spline, switchback layout */
+/* Geometry — Catmull-Rom spline, switchback layout (RNG: game/rng.ts)  */
 /* ------------------------------------------------------------------ */
-
-function rng(seed: number): () => number {
-	let s = seed;
-	return () => {
-		s |= 0;
-		s = (s + 0x6d2b79f5) | 0;
-		let t = Math.imul(s ^ (s >>> 15), 1 | s);
-		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-	};
-}
 
 interface Pt {
 	x: number;
@@ -227,33 +218,7 @@ export function Overworld({
 		byDistrict.set(w.jobAid, list);
 	}
 
-	const stars = (() => {
-		const r = rng(STAR_SEED);
-		const out: {
-			x: number;
-			y: number;
-			r: number;
-			twinkle: boolean;
-			dur: number;
-			delay: number;
-			opacity: number;
-		}[] = [];
-		for (let i = 0; i < STAR_COUNT; i++) {
-			const y = Math.pow(r(), 1.7) * 300;
-			const size = r();
-			const twinkle = r() < 0.3;
-			out.push({
-				x: +(r() * STAGE_W).toFixed(1),
-				y: +y.toFixed(1),
-				r: +(0.6 + size * 1.9).toFixed(2),
-				twinkle,
-				dur: +(2.4 + r() * 4).toFixed(1),
-				delay: +(r() * 5).toFixed(1),
-				opacity: twinkle ? 0.9 : +(0.18 + size * 0.5).toFixed(2),
-			});
-		}
-		return out;
-	})();
+	const stars = generateStars(STAR_SEED, STAGE_W, STAR_COUNT);
 
 	const nodes: NodeInfo[] = [];
 	const trails: { key: JobAidId; color: string; d: string; lit: string }[] = [];
@@ -272,7 +237,7 @@ export function Overworld({
 		totalDone += done;
 		totalAll += n;
 
-		const jit = rng(1000 + li * 77);
+		const jit = mulberry32(1000 + li * 77);
 		const bez = (t: number, a: number, b: number, cc: number) => {
 			const u = 1 - t;
 			return u * u * a + 2 * u * t * b + t * t * cc;
@@ -426,30 +391,6 @@ export function Overworld({
 				overflow: 'hidden',
 			}}
 		>
-			<style>{`
-        @keyframes ow-tw { 0%, 100% { opacity: .25 } 50% { opacity: 1 } }
-        @keyframes ow-drift { 0% { transform: translate(0,0) } 100% { transform: translate(28px,-34px) } }
-        @keyframes ow-pulse { 0%, 100% { opacity: .28 } 50% { opacity: .62 } }
-        .ow-hit { background: none; border: none; padding: 0; }
-        .ow-hit:not(:disabled) { cursor: pointer; }
-        .ow-hit:focus-visible { outline: 2px solid #caa14a; outline-offset: 4px; border-radius: 50%; }
-        .ow-back {
-          display: flex; align-items: center; gap: 9px;
-          padding: 9px 18px 9px 14px;
-          font: 600 12px Cinzel, serif; letter-spacing: 2.4px;
-          color: #caa14a; cursor: pointer;
-          background: #1b1230cc; border: 1.5px solid #caa14a;
-          transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
-        }
-        .ow-back:hover, .ow-back:focus-visible { color: #f4ead6; background: #241a42; }
-        .ow-back:focus-visible { outline: 2px solid #caa14a; outline-offset: 3px; }
-        /* Ambient animations run unconditionally; the global reduce-motion
-           kill switch (data-reduce-motion on <html>, ui/styles/base.css)
-           halts them from the Settings toggle. */
-        .ow-twinkle { animation: ow-tw var(--dur) ease-in-out var(--delay) infinite; }
-        .ow-smoke { animation: ow-drift 7s ease-out infinite; }
-        .ow-pulse-ring { animation: ow-pulse 2.6s ease-in-out infinite; }
-      `}</style>
 			<div
 				style={{
 					position: 'relative',

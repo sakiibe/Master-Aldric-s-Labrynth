@@ -1,6 +1,53 @@
 import type { BuiltDoor, DoorId } from '../../game/types';
 import type { ArchRect } from '../art/junctionRooms';
 
+const GLOB_COUNT = 22;
+
+interface Glob {
+	dx: number;
+	dy: number;
+	size: number;
+	dur: number;
+	delay: number;
+}
+
+/**
+ * A one-shot radial burst for the correct-pick celebration — the same seeded
+ * LCG the torch embers use (Torch.tsx), but each particle gets an angle and a
+ * distance instead of a rise, so the field flies outward in all directions.
+ * Cached per seed so a re-render mid-burst doesn't reshuffle the globs.
+ */
+const globCache = new Map<number, Glob[]>();
+
+function globs(seed: number): Glob[] {
+	const hit = globCache.get(seed);
+	if (hit) return hit;
+
+	let s = seed * 9301 + 49297;
+	const rnd = () => {
+		s = (s * 9301 + 49297) % 233280;
+		return s / 233280;
+	};
+
+	const list: Glob[] = [];
+	for (let i = 0; i < GLOB_COUNT; i++) {
+		// Even spokes around the circle plus jitter, so it reads as a burst
+		// rather than a tidy ring.
+		const angle = (i / GLOB_COUNT) * Math.PI * 2 + (rnd() - 0.5) * 0.8;
+		const dist = 95 + rnd() * 150;
+		list.push({
+			dx: Math.cos(angle) * dist,
+			dy: Math.sin(angle) * dist,
+			size: 5 + rnd() * 7,
+			dur: 0.34 + rnd() * 0.16,
+			delay: rnd() * 0.06,
+		});
+	}
+
+	globCache.set(seed, list);
+	return list;
+}
+
 interface DoorProps {
 	door: BuiltDoor;
 	/** Where this door is painted, as percentages of the room art. */
@@ -26,6 +73,8 @@ interface DoorProps {
 	listed: boolean;
 	onSelect: (doorId: DoorId) => void;
 	onHoverChange: (hovering: boolean) => void;
+	/** True during the correct-pick celebration — flares green and bursts. */
+	celebrating: boolean;
 }
 
 /**
@@ -51,11 +100,12 @@ export function Door({
 	listed,
 	onSelect,
 	onHoverChange,
+	celebrating,
 }: DoorProps) {
 	return (
 		<button
 			type="button"
-			className={`jn-door${lit ? ' is-lit' : ''}${hinted ? ' is-hinted' : ''}`}
+			className={`jn-door${lit ? ' is-lit' : ''}${hinted ? ' is-hinted' : ''}${celebrating ? ' is-correct' : ''}`}
 			style={{
 				left: `${rect.left}%`,
 				top: `${rect.top}%`,
@@ -77,6 +127,26 @@ export function Door({
 			aria-label={hinted ? `${door.label} — the hint points here` : door.label}
 		>
 			<span className="jn-door__glow" aria-hidden="true" />
+			{celebrating && (
+				<span className="jn-door__burst" aria-hidden="true">
+					{globs(Math.round(rect.left)).map((g, i) => (
+						<span
+							key={i}
+							className="jn-glob"
+							style={
+								{
+									width: g.size,
+									height: g.size,
+									'--dx': `${g.dx}px`,
+									'--dy': `${g.dy}px`,
+									animationDuration: `${g.dur}s`,
+									animationDelay: `${g.delay}s`,
+								} as React.CSSProperties
+							}
+						/>
+					))}
+				</span>
+			)}
 			{showHotspot && <span className="jn-door__trace" aria-hidden="true" />}
 
 			<span
