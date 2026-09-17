@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react';
-import { leaderboardService } from '../../services';
+import { isLeaderboardLive, leaderboardService } from '../../services';
 import type { LeaderboardEntry } from '../../services/types';
+import { useAuth } from '../../auth/useAuth';
 
 /**
  * The Leaderboard popup body — a ranked list of rank · name · progression
- * (recipes completed). Skeleton only: it reads the leaderboard service once on
- * open and renders whatever comes back, with loading and empty states. Ranking
- * and data are the backend's job; this just lays them out.
+ * (workflows completed). Reads the leaderboard service once on open and
+ * renders whatever comes back, with loading and empty states. Ranking is the
+ * backend's job (the query is ordered server-side); this just lays it out.
+ *
+ * The signed-in player's own row is marked, because the first thing anyone
+ * does with a leaderboard is look for themselves.
  */
 export function LeaderboardPanel() {
 	const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
+	const { user } = useAuth();
 
 	useEffect(() => {
 		let live = true;
@@ -26,19 +31,39 @@ export function LeaderboardPanel() {
 		return <p style={noteStyle}>Consulting the ledger…</p>;
 	}
 	if (entries.length === 0) {
-		return <p style={noteStyle}>No recipes recorded yet.</p>;
+		return (
+			<p style={noteStyle}>
+				No one has been recorded yet. Sign in, pick a name, and clear a recipe
+				to take the top spot.
+			</p>
+		);
 	}
 
 	return (
-		<ol style={listStyle}>
-			{entries.map((entry, i) => (
-				<li key={entry.uid} style={rowStyle}>
-					<span style={rankStyle}>{i + 1}</span>
-					<span style={nameStyle}>{entry.name}</span>
-					<span style={scoreStyle}>{entry.progression}</span>
-				</li>
-			))}
-		</ol>
+		<>
+			<ol style={listStyle}>
+				{entries.map((entry, i) => {
+					const isMe = entry.uid === user?.uid;
+					return (
+						<li key={entry.uid} style={isMe ? meRowStyle : rowStyle}>
+							<span style={rankStyle}>{i + 1}</span>
+							<span style={nameStyle}>
+								{entry.name}
+								{isMe && <span style={meTagStyle}> (you)</span>}
+							</span>
+							<span style={scoreStyle}>{entry.progression}</span>
+						</li>
+					);
+				})}
+			</ol>
+			{/* Without Firebase config the rows above are fixtures. Saying so
+			    stops a placeholder being read as a real colleague's score. */}
+			{!isLeaderboardLive && (
+				<p style={noteStyle}>
+					Example data — no leaderboard is configured for this build.
+				</p>
+			)}
+		</>
 	);
 }
 
@@ -66,6 +91,14 @@ const rowStyle: React.CSSProperties = {
 	color: 'var(--color-ink)',
 };
 
+/** The player's own row — lifted off the list, not recoloured, so it reads as
+ *  emphasis rather than as a different kind of entry. */
+const meRowStyle: React.CSSProperties = {
+	...rowStyle,
+	background: 'rgba(60,36,100,0.55)',
+	boxShadow: 'inset 0 0 0 1px var(--color-accent)',
+};
+
 const rankStyle: React.CSSProperties = {
 	fontWeight: 700,
 	color: 'var(--color-accent)',
@@ -74,6 +107,11 @@ const rankStyle: React.CSSProperties = {
 
 const nameStyle: React.CSSProperties = {
 	fontSize: 15,
+};
+
+const meTagStyle: React.CSSProperties = {
+	fontSize: 12,
+	color: 'var(--color-ink-muted)',
 };
 
 const scoreStyle: React.CSSProperties = {

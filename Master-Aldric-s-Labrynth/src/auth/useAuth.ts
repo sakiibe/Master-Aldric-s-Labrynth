@@ -12,6 +12,16 @@ export interface AuthUser {
 	uid: string;
 	/** Null for an anonymous player who has not signed up. */
 	email: string | null;
+	/**
+	 * The name shown on the leaderboard. Collected at sign-up; null for an
+	 * anonymous player, and for accounts created before names existed — which
+	 * is why `setDisplayName` exists rather than this being sign-up-only.
+	 *
+	 * Deliberately NOT the email: a board is readable by other players, and
+	 * publishing colleagues' email addresses to each other is not something a
+	 * training tool should do quietly.
+	 */
+	displayName: string | null;
 	isAnonymous: boolean;
 }
 
@@ -29,6 +39,14 @@ export type AuthStatus = 'loading' | 'anonymous' | 'signedIn' | 'off';
 /** Outcome of a sign-up / sign-in attempt. `message` is player-facing. */
 export type AuthResult = { ok: true } | { ok: false; message: string };
 
+/**
+ * Longest display name accepted, and the single source of that number: the
+ * form's `maxLength`, the check in AuthContext, the trim in
+ * services/firebase.ts, and the `size()` bound in firestore.rules must agree,
+ * or a name that looks fine in the form is rejected server-side.
+ */
+export const MAX_NAME = 40;
+
 export interface AuthApi {
 	user: AuthUser | null;
 	status: AuthStatus;
@@ -36,9 +54,21 @@ export interface AuthApi {
 	 * Creates an account. When the player is currently anonymous this LINKS
 	 * the email to their existing uid rather than minting a new one, so the
 	 * attempts they already filed stay theirs.
+	 *
+	 * `name` is what the leaderboard will show — required here because a board
+	 * row with no label is useless, and asking later means nagging.
 	 */
-	signUp: (email: string, password: string) => Promise<AuthResult>;
+	signUp: (
+		name: string,
+		email: string,
+		password: string,
+	) => Promise<AuthResult>;
 	signIn: (email: string, password: string) => Promise<AuthResult>;
+	/**
+	 * Renames the signed-in player on the leaderboard. Also the migration
+	 * path for accounts that predate display names.
+	 */
+	setDisplayName: (name: string) => Promise<AuthResult>;
 	/** Signs out and drops straight back to a fresh anonymous uid, so there
 	 *  is always an identity to attribute play to. */
 	signOut: () => Promise<void>;
@@ -59,6 +89,10 @@ export function useAuth(): AuthApi {
 			status: 'off',
 			signUp: async () => ({ ok: false, message: 'Accounts are unavailable.' }),
 			signIn: async () => ({ ok: false, message: 'Accounts are unavailable.' }),
+			setDisplayName: async () => ({
+				ok: false,
+				message: 'Accounts are unavailable.',
+			}),
 			signOut: async () => {},
 		}
 	);

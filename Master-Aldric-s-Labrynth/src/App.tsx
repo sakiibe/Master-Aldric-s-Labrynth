@@ -20,6 +20,7 @@ import {
 	markFinaleSeen,
 } from './state/storyStorage';
 import { useRun } from './state/useRun';
+import { useLeaderboardSync } from './state/useLeaderboardSync';
 import { SoundProvider } from './sound/SoundProvider';
 import { useSound } from './sound/useSound';
 import { BackButton } from './ui/components/BackButton';
@@ -215,6 +216,11 @@ function Game() {
 		getCompleted(),
 	);
 	const { playMusic, playSfx } = useSound();
+
+	// Keep the player's leaderboard row in step with their progress. `completed`
+	// is refreshed on every return to a home screen, which is also the only
+	// moment the count can have changed.
+	useLeaderboardSync(completed.length);
 
 	// Swap the looping music bed to match the current scene: the mozart menu
 	// track on the title screen, the lab bed on either home screen and over

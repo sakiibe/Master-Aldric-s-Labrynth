@@ -32,6 +32,7 @@ import {
 	signInAnonymously,
 	signInWithEmailAndPassword,
 	signOut as fbSignOut,
+	updateProfile,
 	type User,
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -39,6 +40,7 @@ import { getAuthClient, getDb } from '../analytics/firebase';
 import { track } from '../analytics/events';
 import {
 	AuthContext,
+	MAX_NAME,
 	type AuthApi,
 	type AuthResult,
 	type AuthStatus,
@@ -88,7 +90,26 @@ function errorCode(e: unknown): string {
 }
 
 function toAuthUser(u: User): AuthUser {
-	return { uid: u.uid, email: u.email, isAnonymous: u.isAnonymous };
+	return {
+		uid: u.uid,
+		email: u.email,
+		displayName: u.displayName,
+		isAnonymous: u.isAnonymous,
+	};
+}
+
+/**
+ * Validates a display name, returning a player-facing error or null if fine.
+ * Checked here rather than left to the form so the rule holds for every
+ * caller — and so an over-long name is refused with a readable message
+ * instead of server-side as a rules violation.
+ */
+function nameError(name: string): string | null {
+	if (name.length === 0) return 'Enter a name for the leaderboard.';
+	if (name.length > MAX_NAME) {
+		return `Name must be ${MAX_NAME} characters or fewer.`;
+	}
+	return null;
 }
 
 /**
@@ -108,6 +129,7 @@ async function upsertProfile(u: User): Promise<void> {
 			{
 				uid: u.uid,
 				email: u.email,
+				displayName: u.displayName,
 				lastSeenAt: new Date().toISOString(),
 			},
 			// Merge so a returning player's createdAt is not overwritten.
@@ -150,11 +172,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}, []);
 
 	const signUp = useCallback(
-		async (email: string, password: string): Promise<AuthResult> => {
+		async (
+			name: string,
+			email: string,
+			password: string,
+		): Promise<AuthResult> => {
 			const auth = getAuthClient();
 			if (!auth) return { ok: false, message: 'Accounts are unavailable.' };
+
+			// Checked before the network call, so a bad name costs nothing and
+			// cannot leave an account created but unnamed.
+			const trimmed = name.trim();
+			const bad = nameError(trimmed);
+			if (bad) return { ok: false, message: bad };
+
 			try {
 				const current = auth.currentUser;
+				let account: User;
 				if (current?.isAnonymous) {
 					// The whole point: upgrade this uid in place, keeping every
 					// attempt already filed against it.
@@ -163,19 +197,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 						current,
 						credential,
 					);
-					setUser(toAuthUser(linked));
-					setStatus('signedIn');
-					await upsertProfile(linked);
+					account = linked;
 				} else {
 					const { user: created } = await createUserWithEmailAndPassword(
 						auth,
 						email,
 						password,
 					);
-					setUser(toAuthUser(created));
-					setStatus('signedIn');
-					await upsertProfile(created);
+					account = created;
 				}
+
+				// Name the account, so the leaderboard has a label to use from
+				// the player's very first submit.
+				//
+				// Its own try/catch, and deliberately NOT fatal: by this point
+				// the account exists. Failing the whole sign-up over the name
+				// would strand the player — retrying would only earn them
+				// "that email already has an account", with no way forward. A
+				// nameless account is recoverable instead: they are signed in,
+				// just not yet on the board, and LoginPanel's name field fixes
+				// it in one step.
+				try {
+					await updateProfile(account, { displayName: trimmed });
+				} catch {
+					// Left for the player to set from the Account popup.
+				}
+
+				setUser(toAuthUser(account));
+				setStatus('signedIn');
+				await upsertProfile(account);
 				track({ name: 'sign_up_completed' });
 				return { ok: true };
 			} catch (e) {
@@ -210,6 +260,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		[],
 	);
 
+	const setDisplayName = useCallback(
+		async (name: string): Promise<AuthResult> => {
+			const auth = getAuthClient();
+			const current = auth?.currentUser;
+			if (!current) return { ok: false, message: 'Accounts are unavailable.' };
+
+			const trimmed = name.trim();
+			const bad = nameError(trimmed);
+			if (bad) return { ok: false, message: bad };
+
+			try {
+				await updateProfile(current, { displayName: trimmed });
+				setUser(toAuthUser(current));
+				// Keep the reporting copy in step. The leaderboard row itself is
+				// relabelled by the next submit, which the title screen triggers
+				// whenever auth changes — see App.tsx's useLeaderboardSync.
+				await upsertProfile(current);
+				return { ok: true };
+			} catch (e) {
+				return { ok: false, message: humanMessage(errorCode(e)) };
+			}
+		},
+		[],
+	);
+
 	const signOut = useCallback(async (): Promise<void> => {
 		const auth = getAuthClient();
 		if (!auth) return;
@@ -223,8 +298,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}, []);
 
 	const api = useMemo<AuthApi>(
-		() => ({ user, status, signUp, signIn, signOut }),
-		[user, status, signUp, signIn, signOut],
+		() => ({ user, status, signUp, signIn, setDisplayName, signOut }),
+		[user, status, signUp, signIn, setDisplayName, signOut],
 	);
 
 	return <AuthContext.Provider value={api}>{children}</AuthContext.Provider>;
