@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSound } from '../../sound/useSound';
+import { AccountPanel } from '../components/AccountPanel';
 import { SettingsPanel } from '../components/SettingsPanel';
 
 /**
@@ -754,6 +755,8 @@ export function TitleScreen({
 							<>
 								<h2 style={overlayTitleStyle}>Settings</h2>
 								<SettingsPanel />
+								<h2 style={overlayTitleStyle}>Account</h2>
+								<AccountPanel />
 							</>
 						)}
 					</div>
@@ -982,8 +985,7 @@ const plateStyle: React.CSSProperties = {
 	border: '1px solid rgba(232,207,143,0.45)',
 	background:
 		'linear-gradient(180deg, rgba(36,22,60,0.72), rgba(20,12,36,0.72))',
-	boxShadow:
-		'inset 0 1px 0 rgba(255,236,190,0.18), 0 8px 24px rgba(0,0,0,0.5)',
+	boxShadow: 'inset 0 1px 0 rgba(255,236,190,0.18), 0 8px 24px rgba(0,0,0,0.5)',
 	backdropFilter: 'blur(3px)',
 };
 
