@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSound } from '../../sound/useSound';
+import { LeaderboardPanel } from '../components/LeaderboardPanel';
+import { LoginPanel } from '../components/LoginPanel';
 import { SettingsPanel } from '../components/SettingsPanel';
 
 /**
@@ -266,7 +268,15 @@ const FREE = {
 	focus: 'rgba(150,235,215,0.5)',
 };
 
-type Overlay = 'howto' | 'settings' | null;
+type Overlay = 'howto' | 'settings' | 'leaderboard' | 'login' | null;
+
+/** Popup titles, for the dialog's accessible label and its heading. */
+const OVERLAY_TITLES: Record<Exclude<Overlay, null>, string> = {
+	howto: 'How to Play',
+	settings: 'Settings',
+	leaderboard: 'Leaderboard',
+	login: 'Account',
+};
 
 export function TitleScreen({
 	onStoryMode,
@@ -613,7 +623,15 @@ export function TitleScreen({
 					/>
 				</div>
 
-				<div style={{ display: 'flex', alignItems: 'flex-start', gap: 68 }}>
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'flex-start',
+						justifyContent: 'center',
+						flexWrap: 'wrap',
+						gap: '18px 48px',
+					}}
+				>
 					<SecondaryButton
 						label="HOW TO PLAY"
 						onClick={() => {
@@ -720,6 +738,74 @@ export function TitleScreen({
 							/>
 						</div>
 					</SecondaryButton>
+
+					<SecondaryButton
+						label="LEADERBOARD"
+						onClick={() => {
+							playSfx('click');
+							setClosing(false);
+							setOverlay('leaderboard');
+						}}
+					>
+						{/* Three ascending bars — a ranking. */}
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'flex-end',
+								gap: 3,
+								height: 18,
+							}}
+						>
+							<div
+								style={{ width: 4, height: 9, background: 'currentColor' }}
+							/>
+							<div
+								style={{ width: 4, height: 16, background: 'currentColor' }}
+							/>
+							<div
+								style={{ width: 4, height: 12, background: 'currentColor' }}
+							/>
+						</div>
+					</SecondaryButton>
+
+					<SecondaryButton
+						label="LOGIN"
+						onClick={() => {
+							playSfx('click');
+							setClosing(false);
+							setOverlay('login');
+						}}
+					>
+						{/* Head and shoulders — an account. */}
+						<div style={{ position: 'relative', width: 20, height: 18 }}>
+							<div
+								style={{
+									position: 'absolute',
+									left: '50%',
+									top: 0,
+									width: 8,
+									height: 8,
+									marginLeft: -4,
+									border: '1.5px solid currentColor',
+									borderRadius: '50%',
+								}}
+							/>
+							<div
+								style={{
+									position: 'absolute',
+									left: '50%',
+									bottom: 0,
+									width: 18,
+									height: 9,
+									marginLeft: -9,
+									borderTopLeftRadius: 9,
+									borderTopRightRadius: 9,
+									border: '1.5px solid currentColor',
+									borderBottom: 'none',
+								}}
+							/>
+						</div>
+					</SecondaryButton>
 				</div>
 			</div>
 
@@ -727,7 +813,7 @@ export function TitleScreen({
 				<div
 					role="dialog"
 					aria-modal="true"
-					aria-label={overlay === 'howto' ? 'How to play' : 'Settings'}
+					aria-label={OVERLAY_TITLES[overlay]}
 					style={
 						closing
 							? {
@@ -761,9 +847,9 @@ export function TitleScreen({
 						>
 							✕
 						</button>
-						{overlay === 'howto' ? (
+						<h2 style={overlayTitleStyle}>{OVERLAY_TITLES[overlay]}</h2>
+						{overlay === 'howto' && (
 							<>
-								<h2 style={overlayTitleStyle}>How to Play</h2>
 								<p style={overlayBodyStyle}>
 									Each recipe is a maze. At every junction Master Aldric shows
 									you a set of doors — one continues the correct procedure, the
@@ -780,12 +866,10 @@ export function TitleScreen({
 									maze with no cost to failure.
 								</p>
 							</>
-						) : (
-							<>
-								<h2 style={overlayTitleStyle}>Settings</h2>
-								<SettingsPanel />
-							</>
 						)}
+						{overlay === 'settings' && <SettingsPanel />}
+						{overlay === 'leaderboard' && <LeaderboardPanel />}
+						{overlay === 'login' && <LoginPanel />}
 					</div>
 				</div>
 			)}

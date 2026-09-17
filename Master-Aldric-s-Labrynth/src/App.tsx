@@ -7,6 +7,7 @@ import type {
 	RunState,
 	WorkflowId,
 } from './game/types';
+import { AuthProvider } from './state/AuthContext';
 import { MotionProvider } from './state/MotionContext';
 import { ThemeProvider } from './state/ThemeContext';
 import { useTheme } from './state/useTheme';
@@ -377,8 +378,10 @@ function App() {
 		<ThemeProvider>
 			<MotionProvider>
 				<SoundProvider>
-					<SoundControl />
-					<Game />
+					<AuthProvider>
+						<SoundControl />
+						<Game />
+					</AuthProvider>
 				</SoundProvider>
 			</MotionProvider>
 		</ThemeProvider>
