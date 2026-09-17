@@ -7,6 +7,8 @@ import type {
 	RunState,
 	WorkflowId,
 } from './game/types';
+import { useRunAnalytics } from './analytics/useRunAnalytics';
+import { AuthProvider } from './auth/AuthContext';
 import { MotionProvider } from './state/MotionContext';
 import { ThemeProvider } from './state/ThemeContext';
 import { useTheme } from './state/useTheme';
@@ -116,6 +118,7 @@ function WorkflowScreen({
 	const { playSfx } = useSound();
 	const { run, choose, backtrack, useHint, restart } = useRun(workflow);
 	useRunSounds(run);
+	useRunAnalytics(workflow, run);
 
 	// Fetch the art up front. A wrong door can land on any of the dead-end
 	// scenes with no warning, so decoding one on first sight would flash an
@@ -361,14 +364,16 @@ function Game() {
 
 function App() {
 	return (
-		<ThemeProvider>
-			<MotionProvider>
-				<SoundProvider>
-					<SoundControl />
-					<Game />
-				</SoundProvider>
-			</MotionProvider>
-		</ThemeProvider>
+		<AuthProvider>
+			<ThemeProvider>
+				<MotionProvider>
+					<SoundProvider>
+						<SoundControl />
+						<Game />
+					</SoundProvider>
+				</MotionProvider>
+			</ThemeProvider>
+		</AuthProvider>
 	);
 }
 
