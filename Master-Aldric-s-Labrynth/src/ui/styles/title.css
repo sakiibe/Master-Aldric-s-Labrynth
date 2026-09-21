@@ -245,3 +245,71 @@
 		display: none !important;
 	}
 }
+
+/* Attribution plate — top-right, mirroring the mute button in the top-left.
+   Sits in empty key art, clear of the title, progress bar, and menu. The
+   design hands it over as a non-interactive label; here it also links out to
+   the One Person One Record site, so it carries a restrained hover. */
+.ts-attribution {
+	position: absolute;
+	top: 20px;
+	right: 22px;
+	z-index: 10;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	padding: 11px 20px;
+	border: 1px solid rgba(205, 176, 121, 0.5);
+	border-radius: 4px;
+	background: linear-gradient(
+		180deg,
+		rgba(30, 18, 48, 0.86),
+		rgba(16, 10, 28, 0.92)
+	);
+	text-align: center;
+	text-decoration: none;
+	transition:
+		border-color 200ms ease,
+		box-shadow 200ms ease;
+}
+
+.ts-attribution:hover,
+.ts-attribution:focus-visible {
+	border-color: rgba(232, 207, 143, 0.85);
+	box-shadow: 0 0 18px rgba(150, 90, 230, 0.35);
+}
+
+.ts-attribution__name {
+	font-family: 'Cinzel', serif;
+	font-weight: 700;
+	font-size: 14px;
+	letter-spacing: 0.14em;
+	color: #e8d5a2;
+}
+
+.ts-attribution__org {
+	font-family: 'Cinzel', serif;
+	font-weight: 400;
+	font-size: 9px;
+	letter-spacing: 0.24em;
+	color: #b9a9d4;
+}
+
+/* The plate is sized against a 1434px-wide design; scale it down rather than
+   let it crowd the art on smaller screens. */
+@media (max-width: 900px) {
+	.ts-attribution {
+		top: 14px;
+		right: 14px;
+		gap: 4px;
+		padding: 8px 14px;
+	}
+	.ts-attribution__name {
+		font-size: 11px;
+	}
+	.ts-attribution__org {
+		font-size: 8px;
+		letter-spacing: 0.2em;
+	}
+}

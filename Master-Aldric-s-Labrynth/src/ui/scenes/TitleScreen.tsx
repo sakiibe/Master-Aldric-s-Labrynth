@@ -563,7 +563,18 @@ export function TitleScreen({
 				}}
 			/>
 
-			{/* Layer 11 — menu UI (the only interactive layer) */}
+			{/* Layer 11 — attribution plate, top-right (mirrors the mute button) */}
+			<a
+				className="ts-attribution"
+				href="https://opor-riz.netlify.app/"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				<span className="ts-attribution__name">One Person One Record</span>
+				<span className="ts-attribution__org">NOVA SCOTIA HEALTH</span>
+			</a>
+
+			{/* Layer 12 — menu UI */}
 			<div className="ts-uiRise" style={menuStyle}>
 				<MasteryPlate mastered={mastered} total={total} />
 
